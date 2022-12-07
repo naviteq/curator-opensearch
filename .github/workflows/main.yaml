@@ -15,9 +15,10 @@ jobs:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   helm-release:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "placeholder"
+    uses: naviteq/github-actions/.github/workflows/create-helm-release.yaml@main
+    with:
+      CHART_LOCATION: helm
+      UPDATE_BRANCH: main
 
   helm:
     name: Build Helm chart

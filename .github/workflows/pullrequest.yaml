@@ -21,6 +21,15 @@ jobs:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   helm:
+    name: Build Helm chart
     runs-on: ubuntu-latest
     steps:
-      - run: echo "placeholder"
+      - uses: actions/checkout@v3
+      - uses: azure/setup-helm@v3
+        with:
+          version: v3.10.0
+      - name: Build
+        run: |
+          cd helm
+          helm lint .
+          helm package .

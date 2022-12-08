@@ -2,7 +2,7 @@
 
 name: Pull request code validation and building (Main branch)
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - edited

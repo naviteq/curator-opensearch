@@ -2,7 +2,7 @@
 
 name: Pull request code validation and building (Main branch)
 on:
-  pull_request_target:
+  pull_request:
 jobs:
   docker:
     name: Docker build and push to the registry
@@ -26,9 +26,6 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=semver,pattern={{major}}.{{minor}}
             type=sha
       - name: Build and push
         uses: docker/build-push-action@v2

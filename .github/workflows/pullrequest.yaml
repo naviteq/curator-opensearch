@@ -3,8 +3,6 @@
 name: Pull request code validation and building (Main branch)
 on:
   pull_request_target:
-    branches:
-      - main
 jobs:
   docker:
     name: Docker build and push to the registry

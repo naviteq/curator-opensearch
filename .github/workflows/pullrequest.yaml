@@ -35,7 +35,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=tag
-            type=ref,event=pr
             type=semver,pattern={{major}}.{{minor}}
             type=sha
       - name: Build and push

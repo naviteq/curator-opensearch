@@ -6,10 +6,11 @@ RUN apk --no-cache upgrade && apk --no-cache add build-base tar musl-utils opens
 # patchelf-wrapper is necessary now for cx_Freeze, but not for Curator itself.
 RUN pip3 install setuptools cx_Freeze patchelf-wrapper
 
-COPY . .
+COPY requirements.txt .
 RUN ln -s /lib/libc.musl-x86_64.so.1 ldd
 RUN ln -s /lib /lib64
 RUN pip3 install -r requirements.txt
+COPY . .
 RUN python3 setup.py build_exe
 
 FROM alpine:3.16

@@ -4,6 +4,10 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "placeholder"
+    uses: naviteq/github-actions/.github/workflows/docker-build.yaml@main
+    with:
+      REGISTRY: ghcr.io
+      IMAGE: ${{ github.repository }}
+      USERNAME: ${{ github.actor }}
+    secrets:
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -16,16 +16,7 @@ jobs:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   helm:
-    name: Build Helm chart
-    runs-on: ubuntu-latest
+    uses: naviteq/github-actions/.github/workflows/helm-build.yaml@main
     needs: [docker]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: azure/setup-helm@v3
-        with:
-          version: v3.10.0
-      - name: Build
-        run: |
-          cd helm
-          helm lint .
-          helm package .
+    with:
+      CHART_LOCATION: helm

@@ -23,6 +23,7 @@ jobs:
   helm:
     name: Build Helm chart
     runs-on: ubuntu-latest
+    needs: [docker]
     steps:
       - uses: actions/checkout@v3
       - uses: azure/setup-helm@v3

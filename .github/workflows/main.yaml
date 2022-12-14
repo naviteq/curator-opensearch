@@ -14,18 +14,14 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  helm-release:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "placeholder"
-
   helm:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "placeholder"
-    needs: [helm-release]
+    uses: naviteq/github-actions/.github/workflows/helm-release.yaml@main
+    needs: [docker]
+    with:
+      CHART_LOCATION: helm
+      UPDATE_BRANCH: main
 
   release:
     uses: naviteq/github-actions/.github/workflows/create-release.yaml@main
     secrets: inherit
-    needs: [docker, helm]
+    needs: [helm]

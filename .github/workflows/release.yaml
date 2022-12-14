@@ -16,7 +16,7 @@ jobs:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   helm:
-    uses: naviteq/github-actions/.github/workflows/helm-build.yaml@main
+    uses: naviteq/github-actions/.github/workflows/helm-release.yaml@main
     needs: [docker]
     with:
       CHART_LOCATION: helm

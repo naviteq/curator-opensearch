@@ -238,15 +238,15 @@ class TestGetIndices(TestCase):
 class TestCheckVersion(TestCase):
     def test_check_version_(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '5.0.2'} }
+        client.info.return_value = {'version': {'number': '2.0.0'} }
         self.assertIsNone(curator.check_version(client))
     def test_check_version_less_than(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '2.4.3'} }
+        client.info.return_value = {'version': {'number': '1.9.9'} }
         self.assertRaises(curator.CuratorException, curator.check_version, client)
     def test_check_version_greater_than(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '8.0.1'} }
+        client.info.return_value = {'version': {'number': '2.4.42'} }
         self.assertRaises(curator.CuratorException, curator.check_version, client)
 
 class TestCheckMaster(TestCase):
@@ -1543,13 +1543,13 @@ class Test_do_version_check(TestCase):
     def test_version_fails(self):
         """Test a failing version number"""
         client = Mock()
-        client.info.return_value = {'version': {'number': '2.4.3'} }
+        client.info.return_value = {'version': {'number': '2.4.2'} }
         self.assertRaises(
             curator.exceptions.ClientException, curator.utils.do_version_check, client, False)
     def test_version_succeeds(self):
         """Ensure that a None value is returned if the version is valid"""
         client = Mock()
-        client.info.return_value = {'version': {'number': '5.6.18'} }
+        client.info.return_value = {'version': {'number': '2.4.0'} }
         self.assertIsNone(curator.utils.do_version_check(client, False))
 
 class Test_verify_master_status(TestCase):

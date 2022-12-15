@@ -19,7 +19,8 @@ jobs:
     needs: [docker]
     with:
       CHART_LOCATION: helm
-      UPDATE_BRANCH: main
+    secrets:
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     uses: naviteq/github-actions/.github/workflows/create-release.yaml@main

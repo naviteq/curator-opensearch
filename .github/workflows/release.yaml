@@ -22,3 +22,5 @@ jobs:
       CHART_LOCATION: helm
       PUSH_TO_GITHUB: true
       UPDATE_BRANCH: main
+    secrets:
+      TOKEN: ${{ secrets.PROJECT_GITHUB_TOKEN }}

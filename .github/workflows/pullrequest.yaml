@@ -25,3 +25,5 @@ jobs:
     needs: [docker]
     with:
       CHART_LOCATION: helm
+    secrets:
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}

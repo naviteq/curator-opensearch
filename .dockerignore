@@ -1,3 +1,15 @@
+# Extra
+.git
+.github
+.dockerignore
+.gitignore
+**/*.md
+CONTRIBUTORS
+Dockerfile
+LICENSE
+MANIFEST.in
+NOTICE
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -129,5 +141,3 @@ dmypy.json
 .pyre/
 
 .howtobuild
-
-*.tgz

@@ -327,11 +327,11 @@ class TestGetClient(TestCase):
         )
 
     def test_api_key_not_set(self):
-        kwargs = { 'api_key': None }
+        kwargs = { 'api_key': None, 'use_ssl': True, 'ssl_no_validate': True, 'http_auth': 'admin:admin' }
         self.assertIsNotNone(curator.get_client(**kwargs))
 
     def test_api_key_set(self):
-        kwargs = { 'api_key': 'some-api-key' }
+        kwargs = { 'api_key': 'some-api-key', 'use_ssl': True, 'ssl_no_validate': True, 'http_auth': 'admin:admin' }
         client = curator.get_client(**kwargs)
         self.assertEqual('some-api-key', client.transport.kwargs['headers']['x-api-key'])
 

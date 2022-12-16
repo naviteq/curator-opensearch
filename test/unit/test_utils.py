@@ -1549,7 +1549,7 @@ class Test_do_version_check(TestCase):
     def test_version_succeeds(self):
         """Ensure that a None value is returned if the version is valid"""
         client = Mock()
-        client.info.return_value = {'version': {'number': '2.4.0'} }
+        client.info.return_value = {'version': {'number': '2.4.1'} }
         self.assertIsNone(curator.utils.do_version_check(client, False))
 
 class Test_verify_master_status(TestCase):

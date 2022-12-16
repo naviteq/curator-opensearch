@@ -20,6 +20,14 @@ jobs:
   unit-test:
     name: Run unit tests
     runs-on: ubuntu-latest
+    services:
+      opensearch:
+        image: opensearchproject/opensearch
+        ports:
+          - 9200:9200
+          - 9600:9600
+        env:
+          discovery.type: single-node
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3

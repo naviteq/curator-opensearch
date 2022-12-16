@@ -238,15 +238,15 @@ class TestGetIndices(TestCase):
 class TestCheckVersion(TestCase):
     def test_check_version_(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '5.0.2'} }
+        client.info.return_value = {'version': {'number': '2.0.0'} }
         self.assertIsNone(curator.check_version(client))
     def test_check_version_less_than(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '2.4.3'} }
+        client.info.return_value = {'version': {'number': '1.9.9'} }
         self.assertRaises(curator.CuratorException, curator.check_version, client)
     def test_check_version_greater_than(self):
         client = Mock()
-        client.info.return_value = {'version': {'number': '8.0.1'} }
+        client.info.return_value = {'version': {'number': '2.4.42'} }
         self.assertRaises(curator.CuratorException, curator.check_version, client)
 
 class TestCheckMaster(TestCase):
@@ -327,11 +327,11 @@ class TestGetClient(TestCase):
         )
 
     def test_api_key_not_set(self):
-        kwargs = { 'api_key': None }
+        kwargs = { 'api_key': None, 'use_ssl': True, 'ssl_no_validate': True, 'http_auth': 'admin:admin' }
         self.assertIsNotNone(curator.get_client(**kwargs))
 
     def test_api_key_set(self):
-        kwargs = { 'api_key': 'some-api-key' }
+        kwargs = { 'api_key': 'some-api-key', 'use_ssl': True, 'ssl_no_validate': True, 'http_auth': 'admin:admin' }
         client = curator.get_client(**kwargs)
         self.assertEqual('some-api-key', client.transport.kwargs['headers']['x-api-key'])
 
@@ -361,14 +361,14 @@ class TestGetRepository(TestCase):
             curator.get_repository(client, repository=testvars.repo_name))
     def test_get_repository_transporterror_negative(self):
         client = Mock()
-        client.snapshot.get_repository.side_effect = elasticsearch.TransportError(503,'foo','bar')
+        client.snapshot.get_repository.side_effect = opensearchpy.TransportError(503,'foo','bar')
         self.assertRaises(
             curator.CuratorException,
             curator.get_repository, client, repository=testvars.repo_name
         )
     def test_get_repository_notfounderror_negative(self):
         client = Mock()
-        client.snapshot.get_repository.side_effect = elasticsearch.NotFoundError(404,'foo','bar')
+        client.snapshot.get_repository.side_effect = opensearchpy.NotFoundError(404,'foo','bar')
         self.assertRaises(
             curator.CuratorException,
             curator.get_repository, client, repository=testvars.repo_name
@@ -401,7 +401,7 @@ class TestGetSnapshot(TestCase):
     def test_get_snapshot_notfounderror_negative(self):
         client = Mock()
         client.snapshot.get_repository.return_value = testvars.test_repo
-        client.snapshot.get.side_effect = elasticsearch.NotFoundError(404, 'Snapshot not found')
+        client.snapshot.get.side_effect = opensearchpy.NotFoundError(404, 'Snapshot not found')
         self.assertRaises(
             curator.FailedExecution,
             curator.get_snapshot, client,
@@ -521,7 +521,7 @@ class TestCreateRepository(TestCase):
     def test_raises_exception(self):
         client = Mock()
         client.snapshot.get_repository.return_value = {'not_your_repo':{'foo':'bar'}}
-        client.snapshot.create_repository.side_effect = elasticsearch.TransportError(500, "Error message", {"message":"Error"})
+        client.snapshot.create_repository.side_effect = opensearchpy.TransportError(500, "Error message", {"message":"Error"})
         self.assertRaises(curator.FailedExecution, curator.create_repository, client, repository="repo", repo_type="fs")
 
 class TestRepositoryExists(TestCase):
@@ -649,7 +649,7 @@ class TestValidateFilters(TestCase):
 class TestVerifyClientObject(TestCase):
 
     def test_is_client_object(self):
-        test = elasticsearch.Elasticsearch()
+        test = opensearchpy.OpenSearch()
         self.assertIsNone(curator.verify_client_object(test))
 
     def test_is_not_client_object(self):
@@ -657,9 +657,9 @@ class TestVerifyClientObject(TestCase):
         self.assertRaises(TypeError, curator.verify_client_object, test)
 
     def test_is_a_subclass_client_object(self):
-        class ElasticsearchSubClass(elasticsearch.Elasticsearch):
+        class OpenSearchSubClass(opensearchpy.OpenSearch):
             pass
-        test = ElasticsearchSubClass()
+        test = OpenSearchSubClass()
         self.assertIsNone(curator.verify_client_object(test))
 
 class TestRollableAlias(TestCase):
@@ -667,7 +667,7 @@ class TestRollableAlias(TestCase):
         client = Mock()
         client.info.return_value = {'version': {'number': '6.6.3'} }
         client.indices.get_alias.return_value = {}
-        client.indices.get_alias.side_effect = elasticsearch.NotFoundError
+        client.indices.get_alias.side_effect = opensearchpy.NotFoundError
         self.assertFalse(curator.rollable_alias(client, 'foo'))
     def test_return_false_too_many_indices(self):
         client = Mock()
@@ -1296,7 +1296,7 @@ class TestGetDateMath(TestCase):
         psuedo_random = u'not_random_at_all'
         expected = u'curator_get_datemath_function_' + psuedo_random + u'-hasthemath'
         client.indices.get.side_effect = (
-            elasticsearch.NotFoundError(
+            opensearchpy.NotFoundError(
                 404, "simulated error", {u'error':{u'index':expected}})
         )
         self.assertEqual('hasthemath', curator.get_datemath(client, datemath, psuedo_random))
@@ -1304,7 +1304,7 @@ class TestGetDateMath(TestCase):
         client = Mock()
         datemath = u'{hasthemath}'
         client.indices.get.side_effect = (
-            elasticsearch.NotFoundError(
+            opensearchpy.NotFoundError(
                 404, "simulated error", {u'error':{u'index':'failure'}})
         )
         self.assertRaises(curator.ConfigurationError, curator.get_datemath, client, datemath)
@@ -1543,13 +1543,13 @@ class Test_do_version_check(TestCase):
     def test_version_fails(self):
         """Test a failing version number"""
         client = Mock()
-        client.info.return_value = {'version': {'number': '2.4.3'} }
+        client.info.return_value = {'version': {'number': '2.4.2'} }
         self.assertRaises(
             curator.exceptions.ClientException, curator.utils.do_version_check, client, False)
     def test_version_succeeds(self):
         """Ensure that a None value is returned if the version is valid"""
         client = Mock()
-        client.info.return_value = {'version': {'number': '5.6.18'} }
+        client.info.return_value = {'version': {'number': '2.4.1'} }
         self.assertIsNone(curator.utils.do_version_check(client, False))
 
 class Test_verify_master_status(TestCase):

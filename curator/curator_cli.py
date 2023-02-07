@@ -2,6 +2,7 @@
 import click
 from curator.singletons import cli
 
+
 def main():
     """Main function called by run_curator.py"""
     # This is because click uses decorators, and pylint doesn't catch that

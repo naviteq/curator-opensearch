@@ -23,14 +23,15 @@ Be sure to substitute your unicode variant for en_US.utf8
 import click
 from curator.singletons import cli
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         cli(obj={})
     except RuntimeError as e:
         import sys
-        print('{0}'.format(e))
+
+        print("{0}".format(e))
         sys.exit(1)
     except Exception as e:
-        if 'ASCII' in str(e):
-            print('{0}'.format(e))
+        if "ASCII" in str(e):
+            print("{0}".format(e))
             print(__doc__)

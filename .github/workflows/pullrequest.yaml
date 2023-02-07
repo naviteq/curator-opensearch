@@ -16,15 +16,14 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - run: echo "placeholder"
-      #- uses: actions/checkout@v3
-      #- uses: actions/setup-python@v3
-      #  with:
-      #    python-version: '3.9'
-      #- name: Python format
-      #  uses: psf/black@stable
-      #  with:
-      #    version: 22.6.0
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - name: Python format
+        uses: psf/black@stable
+        with:
+          version: 23.1.0
 
   unit-test:
     name: Run unit tests
@@ -44,14 +43,14 @@ jobs:
           python-version: '3.9'
       - uses: syphar/restore-virtualenv@v1
         id: cache-virtualenv
-        with:
-          requirement_files: requirements.txt
       - uses: syphar/restore-pip-download-cache@v1
-      - run: pip install -r requirements.txt
-      - run: pip install nose mock
+      - run: pip install -r requirements-dev.txt
       - name: Tests run
-        # FIXME: first run of unit tests fails, second succeeds, don't know why
-        run: python test/run_tests.py unit || python test/run_tests.py unit
+        uses: nick-fields/retry@v2
+        with:
+          timeout_seconds: 15
+          max_attempts: 3
+          command: python test/run_tests.py unit
 
   docker:
     uses: naviteq/github-actions/.github/workflows/docker-build.yaml@main

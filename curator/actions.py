@@ -7,8 +7,10 @@ from datetime import datetime
 from opensearchpy.exceptions import ConflictError, RequestError
 from curator import exceptions, utils
 
+
 class Alias(object):
     """Alias Action Class"""
+
     def __init__(self, name=None, extra_settings={}, **kwargs):
         """
         Define the Alias object.
@@ -34,7 +36,7 @@ class Alias(object):
         #: Instance variable.
         #: Any extra things to add to the alias, like filters, or routing.
         self.extra_settings = extra_settings
-        self.loggit = logging.getLogger('curator.actions.alias')
+        self.loggit = logging.getLogger("curator.actions.alias")
         #: Instance variable.
         #: Preset default value to `False`.
         self.warn_if_no_indices = False
@@ -58,20 +60,20 @@ class Alias(object):
             if warn_if_no_indices:
                 self.warn_if_no_indices = True
                 self.loggit.warn(
-                    'No indices found after processing filters. '
-                    'Nothing to add to {0}'.format(self.name)
+                    "No indices found after processing filters. "
+                    "Nothing to add to {0}".format(self.name)
                 )
                 return
             else:
                 # Re-raise the exceptions.NoIndices so it will behave as before
-                raise exceptions.NoIndices('No indices to add to alias')
+                raise exceptions.NoIndices("No indices to add to alias")
         for index in ilo.working_list():
             self.loggit.debug(
-                'Adding index {0} to alias {1} with extra settings '
-                '{2}'.format(index, self.name, self.extra_settings)
+                "Adding index {0} to alias {1} with extra settings "
+                "{2}".format(index, self.name, self.extra_settings)
             )
-            add_dict = {'add' : {'index' : index, 'alias': self.name}}
-            add_dict['add'].update(self.extra_settings)
+            add_dict = {"add": {"index": index, "alias": self.name}}
+            add_dict["add"].update(self.extra_settings)
             self.actions.append(add_dict)
 
     def remove(self, ilo, warn_if_no_indices=False):
@@ -92,30 +94,29 @@ class Alias(object):
             if warn_if_no_indices:
                 self.warn_if_no_indices = True
                 self.loggit.warn(
-                    'No indices found after processing filters. '
-                    'Nothing to remove from {0}'.format(self.name)
+                    "No indices found after processing filters. "
+                    "Nothing to remove from {0}".format(self.name)
                 )
                 return
             else:
                 # Re-raise the exceptions.NoIndices so it will behave as before
-                raise exceptions.NoIndices('No indices to remove from alias')
+                raise exceptions.NoIndices("No indices to remove from alias")
         aliases = self.client.indices.get_alias()
         for index in ilo.working_list():
             if index in aliases:
-                self.loggit.debug(
-                    'Index {0} in get_aliases output'.format(index))
+                self.loggit.debug("Index {0} in get_aliases output".format(index))
                 # Only remove if the index is associated with the alias
-                if self.name in aliases[index]['aliases']:
+                if self.name in aliases[index]["aliases"]:
                     self.loggit.debug(
-                        'Removing index {0} from alias '
-                        '{1}'.format(index, self.name)
+                        "Removing index {0} from alias " "{1}".format(index, self.name)
                     )
                     self.actions.append(
-                        {'remove' : {'index' : index, 'alias': self.name}})
+                        {"remove": {"index": index, "alias": self.name}}
+                    )
                 else:
                     self.loggit.debug(
-                        'Can not remove: Index {0} is not associated with alias'
-                        ' {1}'.format(index, self.name)
+                        "Can not remove: Index {0} is not associated with alias"
+                        " {1}".format(index, self.name)
                     )
 
     def body(self):
@@ -127,29 +128,28 @@ class Alias(object):
             if not self.warn_if_no_indices:
                 raise exceptions.ActionError('No "add" or "remove" operations')
             else:
-                raise exceptions.NoIndices('No "adds" or "removes" found.  Taking no action')
-        self.loggit.debug('Alias actions: {0}'.format(self.actions))
+                raise exceptions.NoIndices(
+                    'No "adds" or "removes" found.  Taking no action'
+                )
+        self.loggit.debug("Alias actions: {0}".format(self.actions))
 
-        return {'actions' : self.actions}
+        return {"actions": self.actions}
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
-        for item in self.body()['actions']:
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
+        for item in self.body()["actions"]:
             job = list(item.keys())[0]
-            index = item[job]['index']
-            alias = item[job]['alias']
+            index = item[job]["index"]
+            alias = item[job]["alias"]
             # We want our log to look clever, so if job is "remove", strip the
             # 'e' so "remove" can become "removing".  "adding" works already.
             self.loggit.info(
                 'DRY-RUN: alias: {0}ing index "{1}" {2} alias '
                 '"{3}"'.format(
-                    job.rstrip('e'),
-                    index,
-                    'to' if job == 'add' else 'from',
-                    alias
+                    job.rstrip("e"), index, "to" if job == "add" else "from", alias
                 )
             )
 
@@ -157,19 +157,27 @@ class Alias(object):
         """
         Run the API call `update_aliases` with the results of `body()`
         """
-        self.loggit.info('Updating aliases...')
-        self.loggit.info('Alias actions: {0}'.format(self.body()))
+        self.loggit.info("Updating aliases...")
+        self.loggit.info("Alias actions: {0}".format(self.body()))
         try:
             self.client.indices.update_aliases(body=self.body())
         except Exception as err:
             utils.report_failure(err)
 
+
 class Allocation(object):
     """Allocation Action Class"""
+
     def __init__(
-            self, ilo, key=None, value=None, allocation_type='require', wait_for_completion=False,
-            wait_interval=3, max_wait=-1
-        ):
+        self,
+        ilo,
+        key=None,
+        value=None,
+        allocation_type="require",
+        wait_for_completion=False,
+        wait_interval=3,
+        max_wait=-1,
+    ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
         :arg key: An arbitrary metadata attribute key.  Must match the key
@@ -193,7 +201,7 @@ class Allocation(object):
         utils.verify_index_list(ilo)
         if not key:
             raise exceptions.MissingArgument('No value for "key" provided')
-        if allocation_type not in ['require', 'include', 'exclude']:
+        if allocation_type not in ["require", "include", "exclude"]:
             raise ValueError(
                 '{0} is an invalid allocation_type.  Must be one of "require", '
                 '"include", "exclude".'.format(allocation_type)
@@ -204,12 +212,12 @@ class Allocation(object):
         #: Instance variable.
         #: The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
-        self.loggit = logging.getLogger('curator.actions.allocation')
+        self.loggit = logging.getLogger("curator.actions.allocation")
         #: Instance variable.
         #: Populated at instance creation time. Value is
         #: ``index.routing.allocation.`` `allocation_type` ``.`` `key` ``.`` `value`
-        bkey = 'index.routing.allocation.{0}.{1}'.format(allocation_type, key)
-        self.body = {bkey : value}
+        bkey = "index.routing.allocation.{0}.{1}".format(allocation_type, key)
+        self.body = {bkey: value}
         #: Instance variable.
         #: Internal reference to `wait_for_completion`
         self.wfc = wait_for_completion
@@ -225,7 +233,7 @@ class Allocation(object):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(self.index_list, 'allocation', body=self.body)
+        utils.show_dry_run(self.index_list, "allocation", body=self.body)
 
     def do_action(self):
         """
@@ -233,17 +241,17 @@ class Allocation(object):
         settings in `body`.
         """
         self.loggit.debug(
-            'Cannot get change shard routing allocation of closed indices.  '
-            'Omitting any closed indices.'
+            "Cannot get change shard routing allocation of closed indices.  "
+            "Omitting any closed indices."
         )
         self.index_list.filter_closed()
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Updating {0} selected indices: {1}'.format(
+            "Updating {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
-        self.loggit.info('Updating index setting {0}'.format(self.body))
+        self.loggit.info("Updating index setting {0}".format(self.body))
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
@@ -252,12 +260,14 @@ class Allocation(object):
                 )
                 if self.wfc:
                     self.loggit.debug(
-                        'Waiting for shards to complete relocation for indices:'
-                        ' {0}'.format(utils.to_csv(lst))
+                        "Waiting for shards to complete relocation for indices:"
+                        " {0}".format(utils.to_csv(lst))
                     )
                     utils.wait_for_it(
-                        self.client, 'allocation',
-                        wait_interval=self.wait_interval, max_wait=self.max_wait
+                        self.client,
+                        "allocation",
+                        wait_interval=self.wait_interval,
+                        max_wait=self.max_wait,
                     )
         except Exception as err:
             utils.report_failure(err)
@@ -265,7 +275,10 @@ class Allocation(object):
 
 class Close(object):
     """Close Action Class"""
-    def __init__(self, ilo, delete_aliases=False, skip_flush=False, ignore_sync_failures=False):
+
+    def __init__(
+        self, ilo, delete_aliases=False, skip_flush=False, ignore_sync_failures=False
+    ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
         :arg delete_aliases: If `True`, will delete any associated aliases
@@ -293,15 +306,15 @@ class Close(object):
         #: Instance variable.
         #: The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
-        self.loggit = logging.getLogger('curator.actions.close')
-
+        self.loggit = logging.getLogger("curator.actions.close")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
         utils.show_dry_run(
-            self.index_list, 'close', **{'delete_aliases':self.delete_aliases})
+            self.index_list, "close", **{"delete_aliases": self.delete_aliases}
+        )
 
     def do_action(self):
         """
@@ -310,7 +323,7 @@ class Close(object):
         self.index_list.filter_closed()
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Closing {0} selected indices: {1}'.format(
+            "Closing {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
@@ -318,35 +331,41 @@ class Close(object):
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
                 lst_as_csv = utils.to_csv(lst)
-                self.loggit.debug('CSV list of indices to close: {0}'.format(lst_as_csv))
+                self.loggit.debug(
+                    "CSV list of indices to close: {0}".format(lst_as_csv)
+                )
                 if self.delete_aliases:
-                    self.loggit.info('Deleting aliases from indices before closing.')
-                    self.loggit.debug('Deleting aliases from: {0}'.format(lst))
+                    self.loggit.info("Deleting aliases from indices before closing.")
+                    self.loggit.debug("Deleting aliases from: {0}".format(lst))
                     try:
-                        self.client.indices.delete_alias(index=lst_as_csv, name='_all')
-                        self.loggit.debug('Deleted aliases from: {0}'.format(lst))
+                        self.client.indices.delete_alias(index=lst_as_csv, name="_all")
+                        self.loggit.debug("Deleted aliases from: {0}".format(lst))
                     except Exception as err:
                         self.loggit.warn(
-                            'Some indices may not have had aliases.  Exception:'
-                            ' {0}'.format(err)
+                            "Some indices may not have had aliases.  Exception:"
+                            " {0}".format(err)
                         )
                 if not self.skip_flush:
                     try:
-                        self.client.indices.flush_synced(index=lst_as_csv, ignore_unavailable=True)
+                        self.client.indices.flush_synced(
+                            index=lst_as_csv, ignore_unavailable=True
+                        )
                     except ConflictError as err:
                         if not self.ignore_sync_failures:
                             raise ConflictError(err.status_code, err.error, err.info)
                         else:
                             self.loggit.warn(
-                                'Ignoring flushed sync failures: '
-                                '{0} {1}'.format(err.error, err.info)
+                                "Ignoring flushed sync failures: "
+                                "{0} {1}".format(err.error, err.info)
                             )
                 self.client.indices.close(index=lst_as_csv, ignore_unavailable=True)
         except Exception as err:
             utils.report_failure(err)
 
+
 class Freeze(object):
     """Freeze Action Class"""
+
     def __init__(self, ilo):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -358,38 +377,36 @@ class Freeze(object):
         #: Instance variable.
         #: The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
-        self.loggit = logging.getLogger('curator.actions.freeze')
-
+        self.loggit = logging.getLogger("curator.actions.freeze")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(
-            self.index_list, 'freeze')
+        utils.show_dry_run(self.index_list, "freeze")
 
     def do_action(self):
         """
         Freeze indices in `index_list.indices`
         """
-        #self.index_list.filter_frozen()
+        # self.index_list.filter_frozen()
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Freezing {0} selected indices: {1}'.format(
+            "Freezing {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
-                self.client.xpack.indices.freeze(
-                    index=utils.to_csv(lst))
+                self.client.xpack.indices.freeze(index=utils.to_csv(lst))
         except Exception as err:
             utils.report_failure(err)
 
 
 class Unfreeze(object):
     """Unfreeze Action Class"""
+
     def __init__(self, ilo):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -401,15 +418,13 @@ class Unfreeze(object):
         #: Instance variable.
         #: The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
-        self.loggit = logging.getLogger('curator.actions.unfreeze')
-
+        self.loggit = logging.getLogger("curator.actions.unfreeze")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(
-            self.index_list, 'unfreeze')
+        utils.show_dry_run(self.index_list, "unfreeze")
 
     def do_action(self):
         """
@@ -417,24 +432,30 @@ class Unfreeze(object):
         """
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Unfreezing {0} selected indices: {1}'.format(
+            "Unfreezing {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
-                self.client.xpack.indices.unfreeze(
-                    index=utils.to_csv(lst))
+                self.client.xpack.indices.unfreeze(index=utils.to_csv(lst))
         except Exception as err:
             utils.report_failure(err)
 
 
 class ClusterRouting(object):
     """ClusterRouting Action Class"""
+
     def __init__(
-            self, client, routing_type=None, setting=None, value=None, wait_for_completion=False,
-            wait_interval=9, max_wait=-1
+        self,
+        client,
+        routing_type=None,
+        setting=None,
+        value=None,
+        wait_for_completion=False,
+        wait_interval=9,
+        max_wait=-1,
     ):
         """
         For now, the cluster routing settings are hardcoded to be ``transient``
@@ -460,7 +481,7 @@ class ClusterRouting(object):
         #: Instance variable.
         #: An :class:`elasticsearch.Elasticsearch` client object
         self.client = client
-        self.loggit = logging.getLogger('curator.actions.cluster_routing')
+        self.loggit = logging.getLogger("curator.actions.cluster_routing")
         #: Instance variable.
         #: Internal reference to `wait_for_completion`
         self.wfc = wait_for_completion
@@ -472,59 +493,61 @@ class ClusterRouting(object):
         #: exception. A value of -1 means wait forever.
         self.max_wait = max_wait
 
-        if setting != 'enable':
-            raise ValueError(
-                'Invalid value for "setting": {0}.'.format(setting)
-            )
-        if routing_type == 'allocation':
-            if value not in ['all', 'primaries', 'new_primaries', 'none']:
+        if setting != "enable":
+            raise ValueError('Invalid value for "setting": {0}.'.format(setting))
+        if routing_type == "allocation":
+            if value not in ["all", "primaries", "new_primaries", "none"]:
                 raise ValueError(
                     'Invalid "value": {0} with "routing_type":'
-                    '{1}.'.format(value, routing_type)
+                    "{1}.".format(value, routing_type)
                 )
-        elif routing_type == 'rebalance':
-            if value not in ['all', 'primaries', 'replicas', 'none']:
+        elif routing_type == "rebalance":
+            if value not in ["all", "primaries", "replicas", "none"]:
                 raise ValueError(
                     'Invalid "value": {0} with "routing_type":'
-                    '{1}.'.format(value, routing_type)
+                    "{1}.".format(value, routing_type)
                 )
         else:
             raise ValueError(
                 'Invalid value for "routing_type": {0}.'.format(routing_type)
             )
-        bkey = 'cluster.routing.{0}.{1}'.format(routing_type, setting)
-        self.body = {'transient' : {bkey : value}}
+        bkey = "cluster.routing.{0}.{1}".format(routing_type, setting)
+        self.body = {"transient": {bkey: value}}
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         self.loggit.info(
-            'DRY-RUN: Update cluster routing settings with arguments: '
-            '{0}'.format(self.body)
+            "DRY-RUN: Update cluster routing settings with arguments: "
+            "{0}".format(self.body)
         )
 
     def do_action(self):
         """
         Change cluster routing settings with the settings in `body`.
         """
-        self.loggit.info('Updating cluster settings: {0}'.format(self.body))
+        self.loggit.info("Updating cluster settings: {0}".format(self.body))
         try:
             self.client.cluster.put_settings(body=self.body)
             if self.wfc:
                 self.loggit.debug(
-                    'Waiting for shards to complete routing and/or rebalancing'
+                    "Waiting for shards to complete routing and/or rebalancing"
                 )
                 utils.wait_for_it(
-                    self.client, 'cluster_routing',
-                    wait_interval=self.wait_interval, max_wait=self.max_wait
+                    self.client,
+                    "cluster_routing",
+                    wait_interval=self.wait_interval,
+                    max_wait=self.max_wait,
                 )
         except Exception as err:
             utils.report_failure(err)
 
+
 class CreateIndex(object):
     """Create Index Action Class"""
+
     def __init__(self, client, name, extra_settings={}, ignore_existing=False):
         """
         :arg client: An :class:`elasticsearch.Elasticsearch` client object
@@ -554,17 +577,16 @@ class CreateIndex(object):
         #: Instance variable.
         #: An :class:`elasticsearch.Elasticsearch` client object
         self.client = client
-        
-        self.loggit = logging.getLogger('curator.actions.create_index')
+
+        self.loggit = logging.getLogger("curator.actions.create_index")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         self.loggit.info(
-            'DRY-RUN: create_index "%s" with arguments: '
-            '%s' % (self.name, self.body)
+            'DRY-RUN: create_index "%s" with arguments: ' "%s" % (self.name, self.body)
         )
 
     def do_action(self):
@@ -572,23 +594,27 @@ class CreateIndex(object):
         Create index identified by `name` with settings in `body`
         """
         self.loggit.info(
-            'Creating index "{0}" with settings: '
-            '{1}'.format(self.name, self.body)
+            'Creating index "{0}" with settings: ' "{1}".format(self.name, self.body)
         )
         try:
             self.client.indices.create(index=self.name, body=self.body)
         # Most likely error is a 400, `resource_already_exists_exception`
         except RequestError as err:
-            match_list = ["index_already_exists_exception", "resource_already_exists_exception"]
+            match_list = [
+                "index_already_exists_exception",
+                "resource_already_exists_exception",
+            ]
             if err.error in match_list and self.ignore_existing:
-                self.loggit.warn('Index %s already exists.' % self.name)
+                self.loggit.warn("Index %s already exists." % self.name)
             else:
-                raise exceptions.FailedExecution('Index %s already exists.' % self.name)
+                raise exceptions.FailedExecution("Index %s already exists." % self.name)
         except Exception as err:
             utils.report_failure(err)
 
+
 class DeleteIndices(object):
     """Delete Indices Action Class"""
+
     def __init__(self, ilo, master_timeout=30):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -598,7 +624,7 @@ class DeleteIndices(object):
         if not isinstance(master_timeout, int):
             raise TypeError(
                 'Incorrect type for "master_timeout": {0}. '
-                'Should be integer value.'.format(type(master_timeout))
+                "Should be integer value.".format(type(master_timeout))
             )
         #: Instance variable.
         #: Internal reference to `ilo`
@@ -608,10 +634,9 @@ class DeleteIndices(object):
         self.client = ilo.client
         #: Instance variable.
         #: String value of `master_timeout` + 's', for seconds.
-        self.master_timeout = str(master_timeout) + 's'
-        self.loggit = logging.getLogger('curator.actions.delete_indices')
-        self.loggit.debug('master_timeout value: {0}'.format(
-            self.master_timeout))
+        self.master_timeout = str(master_timeout) + "s"
+        self.loggit = logging.getLogger("curator.actions.delete_indices")
+        self.loggit.debug("master_timeout value: {0}".format(self.master_timeout))
 
     def _verify_result(self, result, count):
         """
@@ -622,15 +647,14 @@ class DeleteIndices(object):
         """
         if isinstance(result, list) and result:
             self.loggit.error(
-                'The following indices failed to delete on try '
-                '#{0}:'.format(count)
+                "The following indices failed to delete on try " "#{0}:".format(count)
             )
             for idx in result:
                 self.loggit.error("---{0}".format(idx))
             retval = False
         else:
             self.loggit.debug(
-                'Successfully deleted all indices on try #{0}'.format(count)
+                "Successfully deleted all indices on try #{0}".format(count)
             )
             retval = True
         return retval
@@ -642,26 +666,27 @@ class DeleteIndices(object):
             URL size limit.
         """
         working_list = chunk_list
-        for count in range(1, 4): # Try 3 times
+        for count in range(1, 4):  # Try 3 times
             for i in working_list:
                 self.loggit.info("---deleting index {0}".format(i))
             self.client.indices.delete(
-                index=utils.to_csv(working_list), master_timeout=self.master_timeout)
+                index=utils.to_csv(working_list), master_timeout=self.master_timeout
+            )
             result = [i for i in working_list if i in utils.get_indices(self.client)]
             if self._verify_result(result, count):
                 return
             else:
                 working_list = result
         self.loggit.error(
-            'Unable to delete the following indices after 3 attempts: '
-            '{0}'.format(result)
+            "Unable to delete the following indices after 3 attempts: "
+            "{0}".format(result)
         )
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(self.index_list, 'delete_indices')
+        utils.show_dry_run(self.index_list, "delete_indices")
 
     def do_action(self):
         """
@@ -669,7 +694,7 @@ class DeleteIndices(object):
         """
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Deleting {0} selected indices: {1}'.format(
+            "Deleting {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
@@ -680,8 +705,10 @@ class DeleteIndices(object):
         except Exception as err:
             utils.report_failure(err)
 
+
 class ForceMerge(object):
     """ForceMerge Action Class"""
+
     def __init__(self, ilo, max_num_segments=None, delay=0):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -703,14 +730,15 @@ class ForceMerge(object):
         #: Instance variable.
         #: Internally accessible copy of `delay`
         self.delay = delay
-        self.loggit = logging.getLogger('curator.actions.forcemerge')
+        self.loggit = logging.getLogger("curator.actions.forcemerge")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
         utils.show_dry_run(
-            self.index_list, 'forcemerge',
+            self.index_list,
+            "forcemerge",
             max_num_segments=self.max_num_segments,
             delay=self.delay,
         )
@@ -720,25 +748,28 @@ class ForceMerge(object):
         forcemerge indices in `index_list.indices`
         """
         self.index_list.filter_closed()
-        self.index_list.filter_forceMerged(
-            max_num_segments=self.max_num_segments)
+        self.index_list.filter_forceMerged(max_num_segments=self.max_num_segments)
         self.index_list.empty_list_check()
         self.loggit.info(
-            'forceMerging {0} selected indices: {1}'.format(
+            "forceMerging {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
         try:
             for index_name in self.index_list.indices:
                 self.loggit.info(
-                    'forceMerging index {0} to {1} segments per shard.  '
-                    'Please wait...'.format(index_name, self.max_num_segments)
+                    "forceMerging index {0} to {1} segments per shard.  "
+                    "Please wait...".format(index_name, self.max_num_segments)
                 )
                 self.client.indices.forcemerge(
-                    index=index_name, max_num_segments=self.max_num_segments)
+                    index=index_name, max_num_segments=self.max_num_segments
+                )
                 if self.delay > 0:
                     self.loggit.info(
-                        'Pausing for {0} seconds before continuing...'.format(self.delay))
+                        "Pausing for {0} seconds before continuing...".format(
+                            self.delay
+                        )
+                    )
                     time.sleep(self.delay)
         except Exception as err:
             utils.report_failure(err)
@@ -746,8 +777,10 @@ class ForceMerge(object):
 
 class IndexSettings(object):
     """Index Settings Action Class"""
+
     def __init__(
-            self, ilo, index_settings={}, ignore_unavailable=False, preserve_existing=False):
+        self, ilo, index_settings={}, ignore_unavailable=False, preserve_existing=False
+    ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
         :arg index_settings: A dictionary structure with one or more index
@@ -777,39 +810,40 @@ class IndexSettings(object):
         #: Internal reference to `preserve_settings`
         self.preserve_existing = preserve_existing
 
-        self.loggit = logging.getLogger('curator.actions.index_settings')
+        self.loggit = logging.getLogger("curator.actions.index_settings")
         self._body_check()
 
     def _body_check(self):
         # The body only passes the skimpiest of requirements by having 'index'
         # as the only root-level key, and having a 'dict' as its value
         if len(self.body) == 1:
-            if 'index' in self.body:
-                if isinstance(self.body['index'], dict):
+            if "index" in self.body:
+                if isinstance(self.body["index"], dict):
                     return True
         raise exceptions.ConfigurationError(
-            'Bad value for "index_settings": {0}'.format(self.body))
+            'Bad value for "index_settings": {0}'.format(self.body)
+        )
 
     def _static_settings(self):
         return [
-            'number_of_shards',
-            'shard',
-            'codec',
-            'routing_partition_size',
+            "number_of_shards",
+            "shard",
+            "codec",
+            "routing_partition_size",
         ]
 
     def _dynamic_settings(self):
         return [
-            'number_of_replicas',
-            'auto_expand_replicas',
-            'refresh_interval',
-            'max_result_window',
-            'max_rescore_window',
-            'blocks',
-            'max_refresh_listeners',
-            'mapping',
-            'merge',
-            'translog',
+            "number_of_replicas",
+            "auto_expand_replicas",
+            "refresh_interval",
+            "max_result_window",
+            "max_rescore_window",
+            "blocks",
+            "max_refresh_listeners",
+            "mapping",
+            "merge",
+            "translog",
         ]
 
     def _settings_check(self):
@@ -817,18 +851,18 @@ class IndexSettings(object):
         open_index_list = []
         open_indices = False
         for idx in self.index_list.indices:
-            if self.index_list.index_info[idx]['state'] == 'open':
+            if self.index_list.index_info[idx]["state"] == "open":
                 open_index_list.append(idx)
                 open_indices = True
-        for k in self.body['index']:
+        for k in self.body["index"]:
             if k in self._static_settings():
                 if not self.ignore_unavailable:
                     if open_indices:
                         raise exceptions.ActionError(
                             'Static Setting "{0}" detected with open indices: '
-                            '{1}. Static settings can only be used with closed '
-                            'indices.  Recommend filtering out open indices, '
-                            'or setting ignore_unavailable to True'.format(
+                            "{1}. Static settings can only be used with closed "
+                            "indices.  Recommend filtering out open indices, "
+                            "or setting ignore_unavailable to True".format(
                                 k, open_index_list
                             )
                         )
@@ -839,14 +873,14 @@ class IndexSettings(object):
             else:
                 self.loggit.warn(
                     '"{0}" is not a setting Curator recognizes and may or may '
-                    'not work.'.format(k)
+                    "not work.".format(k)
                 )
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(self.index_list, 'indexsettings', **self.body)
+        utils.show_dry_run(self.index_list, "indexsettings", **self.body)
 
     def do_action(self):
         """Actually do the action"""
@@ -855,24 +889,26 @@ class IndexSettings(object):
         # didn't result in an empty list (or otherwise empty)
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Applying index settings to {0} indices: '
-            '{1}'.format(len(self.index_list.indices), self.index_list.indices)
+            "Applying index settings to {0} indices: "
+            "{1}".format(len(self.index_list.indices), self.index_list.indices)
         )
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
                 response = self.client.indices.put_settings(
-                    index=utils.to_csv(lst), body=self.body,
+                    index=utils.to_csv(lst),
+                    body=self.body,
                     ignore_unavailable=self.ignore_unavailable,
-                    preserve_existing=self.preserve_existing
+                    preserve_existing=self.preserve_existing,
                 )
-                self.loggit.debug('PUT SETTINGS RESPONSE: {0}'.format(response))
+                self.loggit.debug("PUT SETTINGS RESPONSE: {0}".format(response))
         except Exception as err:
             utils.report_failure(err)
 
 
 class Open(object):
     """Open Action Class"""
+
     def __init__(self, ilo):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -884,13 +920,13 @@ class Open(object):
         #: Instance variable.
         #: Internal reference to `ilo`
         self.index_list = ilo
-        self.loggit = logging.getLogger('curator.actions.open')
+        self.loggit = logging.getLogger("curator.actions.open")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(self.index_list, 'open')
+        utils.show_dry_run(self.index_list, "open")
 
     def do_action(self):
         """
@@ -898,9 +934,8 @@ class Open(object):
         """
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Opening {0} selected indices: {1}'.format(
-                len(self.index_list.indices),
-                self.index_list.indices
+            "Opening {0} selected indices: {1}".format(
+                len(self.index_list.indices), self.index_list.indices
             )
         )
         try:
@@ -910,10 +945,13 @@ class Open(object):
         except Exception as err:
             utils.report_failure(err)
 
+
 class Replicas(object):
     """Replica Action Class"""
+
     def __init__(
-            self, ilo, count=None, wait_for_completion=False, wait_interval=9, max_wait=-1):
+        self, ilo, count=None, wait_for_completion=False, wait_interval=9, max_wait=-1
+    ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
         :arg count: The count of replicas per shard
@@ -949,53 +987,63 @@ class Replicas(object):
         #: How long in seconds to `wait_for_completion` before returning with an
         #: exception. A value of -1 means wait forever.
         self.max_wait = max_wait
-        self.loggit = logging.getLogger('curator.actions.replicas')
+        self.loggit = logging.getLogger("curator.actions.replicas")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        utils.show_dry_run(self.index_list, 'replicas', count=self.count)
+        utils.show_dry_run(self.index_list, "replicas", count=self.count)
 
     def do_action(self):
         """
         Update the replica count of indices in `index_list.indices`
         """
         self.loggit.debug(
-            'Cannot get update replica count of closed indices.  '
-            'Omitting any closed indices.'
+            "Cannot get update replica count of closed indices.  "
+            "Omitting any closed indices."
         )
         self.index_list.filter_closed()
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Setting the replica count to {0} for {1} indices: '
-            '{2}'.format(self.count, len(self.index_list.indices), self.index_list.indices)
+            "Setting the replica count to {0} for {1} indices: "
+            "{2}".format(
+                self.count, len(self.index_list.indices), self.index_list.indices
+            )
         )
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
                 self.client.indices.put_settings(
-                    index=utils.to_csv(lst),
-                    body={'number_of_replicas': self.count}
+                    index=utils.to_csv(lst), body={"number_of_replicas": self.count}
                 )
                 if self.wfc and self.count > 0:
                     self.loggit.debug(
-                        'Waiting for shards to complete replication for '
-                        'indices: {0}'.format(utils.to_csv(lst))
+                        "Waiting for shards to complete replication for "
+                        "indices: {0}".format(utils.to_csv(lst))
                     )
                     utils.wait_for_it(
-                        self.client, 'replicas',
-                        wait_interval=self.wait_interval, max_wait=self.max_wait
+                        self.client,
+                        "replicas",
+                        wait_interval=self.wait_interval,
+                        max_wait=self.max_wait,
                     )
         except Exception as err:
             utils.report_failure(err)
 
+
 class Rollover(object):
     """Rollover Action Class"""
+
     def __init__(
-            self, client, name, conditions, new_index=None, extra_settings=None,
-            wait_for_active_shards=1
-        ):
+        self,
+        client,
+        name,
+        conditions,
+        new_index=None,
+        extra_settings=None,
+        wait_for_active_shards=1,
+    ):
         """
         :arg client: An :class:`elasticsearch.Elasticsearch` client object
         :arg name: The name of the single-index-mapped alias to test for
@@ -1009,14 +1057,15 @@ class Rollover(object):
         :arg wait_for_active_shards: The number of shards expected to be active
             before returning.
         """
-        self.loggit = logging.getLogger('curator.actions.rollover')
+        self.loggit = logging.getLogger("curator.actions.rollover")
         if not isinstance(conditions, dict):
             raise exceptions.ConfigurationError('"conditions" must be a dictionary')
         else:
             self.loggit.debug('"conditions" is {0}'.format(conditions))
         if not isinstance(extra_settings, dict) and extra_settings is not None:
             raise exceptions.ConfigurationError(
-                '"extra_settings" must be a dictionary or None')
+                '"extra_settings" must be a dictionary or None'
+            )
         utils.verify_client_object(client)
         #: Instance variable.
         #: The Elasticsearch Client object
@@ -1040,7 +1089,7 @@ class Rollover(object):
             self.name = name
         else:
             raise ValueError(
-                'Unable to perform index rollover with alias '
+                "Unable to perform index rollover with alias "
                 '"{0}". See previous logs for more details.'.format(name)
             )
 
@@ -1049,13 +1098,13 @@ class Rollover(object):
         Ensure that if ``max_size`` is specified, that ``self.client``
         is running 6.1 or higher.
         """
-        if 'max_size' in conditions:
+        if "max_size" in conditions:
             version = utils.get_version(self.client)
             if version < (1, 0, 0):
                 raise exceptions.ConfigurationError(
-                    'Your version of elasticsearch ({0}) does not support '
-                    'the max_size rollover condition. It is only supported '
-                    'in versions 6.1.0 and up.'.format(version)
+                    "Your version of elasticsearch ({0}) does not support "
+                    "the max_size rollover condition. It is only supported "
+                    "in versions 6.1.0 and up.".format(version)
                 )
         return conditions
 
@@ -1064,38 +1113,36 @@ class Rollover(object):
         Create a body from conditions and settings
         """
         retval = {}
-        retval['conditions'] = self.conditions
+        retval["conditions"] = self.conditions
         if self.settings:
-            retval['settings'] = self.settings
+            retval["settings"] = self.settings
         return retval
 
     def log_result(self, result):
         """
         Log the results based on whether the index rolled over or not
         """
-        dryrun_string = ''
-        if result['dry_run']:
-            dryrun_string = 'DRY-RUN: '
-        self.loggit.debug('{0}Result: {1}'.format(dryrun_string, result))
-        rollover_string = '{0}Old index {1} rolled over to new index {2}'.format(
-            dryrun_string,
-            result['old_index'],
-            result['new_index']
+        dryrun_string = ""
+        if result["dry_run"]:
+            dryrun_string = "DRY-RUN: "
+        self.loggit.debug("{0}Result: {1}".format(dryrun_string, result))
+        rollover_string = "{0}Old index {1} rolled over to new index {2}".format(
+            dryrun_string, result["old_index"], result["new_index"]
         )
         # Success is determined by at one condition being True
         success = False
-        for k in list(result['conditions'].keys()):
-            if result['conditions'][k]:
+        for k in list(result["conditions"].keys()):
+            if result["conditions"][k]:
                 success = True
-        if result['dry_run'] and success: # log "successful" dry-run
+        if result["dry_run"] and success:  # log "successful" dry-run
             self.loggit.info(rollover_string)
-        elif result['rolled_over']:
+        elif result["rolled_over"]:
             self.loggit.info(rollover_string)
         else:
             self.loggit.info(
-                '{0}Rollover conditions not met. Index {1} not rolled over.'.format(
-                    dryrun_string,
-                    result['old_index'])
+                "{0}Rollover conditions not met. Index {1} not rolled over.".format(
+                    dryrun_string, result["old_index"]
+                )
             )
 
     def doit(self, dry_run=False):
@@ -1115,21 +1162,23 @@ class Rollover(object):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         self.log_result(self.doit(dry_run=True))
 
     def do_action(self):
         """
         Rollover the index referenced by alias `name`
         """
-        self.loggit.info('Performing index rollover')
+        self.loggit.info("Performing index rollover")
         try:
             self.log_result(self.doit())
         except Exception as err:
             utils.report_failure(err)
 
+
 class DeleteSnapshots(object):
     """Delete Snapshots Action Class"""
+
     def __init__(self, slo, retry_interval=120, retry_count=3):
         """
         :arg slo: A :class:`curator.snapshotlist.SnapshotList` object
@@ -1153,21 +1202,24 @@ class DeleteSnapshots(object):
         #: Instance variable.
         #: The repository name derived from `slo`
         self.repository = slo.repository
-        self.loggit = logging.getLogger('curator.actions.delete_snapshots')
+        self.loggit = logging.getLogger("curator.actions.delete_snapshots")
 
     def do_dry_run(self):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         mykwargs = {
-            'repository' : self.repository,
-            'retry_interval' : self.retry_interval,
-            'retry_count' : self.retry_count,
+            "repository": self.repository,
+            "retry_interval": self.retry_interval,
+            "retry_count": self.retry_count,
         }
         for snap in self.snapshot_list.snapshots:
             self.loggit.info(
-                'DRY-RUN: delete_snapshot: {0} with arguments: {1}'.format(snap, mykwargs))
+                "DRY-RUN: delete_snapshot: {0} with arguments: {1}".format(
+                    snap, mykwargs
+                )
+            )
 
     def do_action(self):
         """
@@ -1177,35 +1229,54 @@ class DeleteSnapshots(object):
         """
         self.snapshot_list.empty_list_check()
         self.loggit.info(
-            'Deleting {0} selected snapshots: {1}'.format(
-                len(self.snapshot_list.snapshots),
-                self.snapshot_list.snapshots
+            "Deleting {0} selected snapshots: {1}".format(
+                len(self.snapshot_list.snapshots), self.snapshot_list.snapshots
             )
         )
         if not utils.safe_to_snap(
-                self.client, repository=self.repository,
-                retry_interval=self.retry_interval, retry_count=self.retry_count
+            self.client,
+            repository=self.repository,
+            retry_interval=self.retry_interval,
+            retry_count=self.retry_count,
         ):
-                raise exceptions.FailedExecution(
-                    'Unable to delete snapshot(s) because a snapshot is in '
-                    'state "IN_PROGRESS"')
+            raise exceptions.FailedExecution(
+                "Unable to delete snapshot(s) because a snapshot is in "
+                'state "IN_PROGRESS"'
+            )
         try:
             for snap in self.snapshot_list.snapshots:
-                self.loggit.info('Deleting snapshot {0}...'.format(snap))
-                self.client.snapshot.delete(
-                    repository=self.repository, snapshot=snap)
+                self.loggit.info("Deleting snapshot {0}...".format(snap))
+                self.client.snapshot.delete(repository=self.repository, snapshot=snap)
         except Exception as err:
             utils.report_failure(err)
 
+
 class Reindex(object):
     """Reindex Action Class"""
+
     def __init__(
-            self, ilo, request_body, refresh=True, requests_per_second=-1, slices=1, timeout=60,
-            wait_for_active_shards=1, wait_for_completion=True, max_wait=-1, wait_interval=9,
-            remote_url_prefix=None, remote_ssl_no_validate=None, remote_certificate=None,
-            remote_client_cert=None, remote_client_key=None, remote_aws_key=None,
-            remote_aws_secret_key=None, remote_aws_region=None, remote_filters={},
-            migration_prefix='', migration_suffix=''
+        self,
+        ilo,
+        request_body,
+        refresh=True,
+        requests_per_second=-1,
+        slices=1,
+        timeout=60,
+        wait_for_active_shards=1,
+        wait_for_completion=True,
+        max_wait=-1,
+        wait_interval=9,
+        remote_url_prefix=None,
+        remote_ssl_no_validate=None,
+        remote_certificate=None,
+        remote_client_cert=None,
+        remote_client_key=None,
+        remote_aws_key=None,
+        remote_aws_secret_key=None,
+        remote_aws_region=None,
+        remote_filters={},
+        migration_prefix="",
+        migration_suffix="",
     ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -1258,17 +1329,19 @@ class Reindex(object):
         :arg migration_suffix: When migrating, append this value to the index
             name.
         """
-        self.loggit = logging.getLogger('curator.actions.reindex')
+        self.loggit = logging.getLogger("curator.actions.reindex")
         utils.verify_index_list(ilo)
         # Normally, we'd check for an empty list here.  But since we can reindex
         # from remote, we might just be starting with an empty one.
         # ilo.empty_list_check()
         if not isinstance(request_body, dict):
-            raise exceptions.ConfigurationError('"request_body" is not of type dictionary')
+            raise exceptions.ConfigurationError(
+                '"request_body" is not of type dictionary'
+            )
         #: Instance variable.
         #: Internal reference to `request_body`
         self.body = request_body
-        self.loggit.debug('REQUEST_BODY = {0}'.format(request_body))
+        self.loggit.debug("REQUEST_BODY = {0}".format(request_body))
         #: Instance variable.
         #: The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
@@ -1286,7 +1359,7 @@ class Reindex(object):
         self.slices = slices
         #: Instance variable.
         #: Internal reference to `timeout`, and add "s" for seconds.
-        self.timeout = '{0}s'.format(timeout)
+        self.timeout = "{0}s".format(timeout)
         #: Instance variable.
         #: Internal reference to `wait_for_active_shards`
         self.wait_for_active_shards = wait_for_active_shards
@@ -1309,58 +1382,62 @@ class Reindex(object):
 
         # This is for error logging later...
         self.remote = False
-        if 'remote' in self.body['source']:
+        if "remote" in self.body["source"]:
             self.remote = True
 
         self.migration = False
-        if self.body['dest']['index'] == 'MIGRATION':
+        if self.body["dest"]["index"] == "MIGRATION":
             self.migration = True
 
         if self.migration:
             if not self.remote and not self.mpfx and not self.msfx:
                 raise exceptions.ConfigurationError(
-                    'MIGRATION can only be used locally with one or both of '
-                    'migration_prefix or migration_suffix.'
+                    "MIGRATION can only be used locally with one or both of "
+                    "migration_prefix or migration_suffix."
                 )
 
         # REINDEX_SELECTION is the designated token.  If you use this for the
         # source "index," it will be replaced with the list of indices from the
         # provided 'ilo' (index list object).
-        if self.body['source']['index'] == 'REINDEX_SELECTION' \
-                and not self.remote:
-            self.body['source']['index'] = self.index_list.indices
+        if self.body["source"]["index"] == "REINDEX_SELECTION" and not self.remote:
+            self.body["source"]["index"] = self.index_list.indices
 
         # Remote section
         elif self.remote:
-            self.loggit.debug('Remote reindex request detected')
-            if 'host' not in self.body['source']['remote']:
+            self.loggit.debug("Remote reindex request detected")
+            if "host" not in self.body["source"]["remote"]:
                 raise exceptions.ConfigurationError('Missing remote "host"')
             rclient_info = {}
-            for k in ['host', 'username', 'password']:
-                rclient_info[k] = self.body['source']['remote'][k] \
-                    if k in self.body['source']['remote'] else None
-            rhost = rclient_info['host']
+            for k in ["host", "username", "password"]:
+                rclient_info[k] = (
+                    self.body["source"]["remote"][k]
+                    if k in self.body["source"]["remote"]
+                    else None
+                )
+            rhost = rclient_info["host"]
             try:
                 # Save these for logging later
-                _ = rhost.split(':')
+                _ = rhost.split(":")
                 self.remote_port = _[2]
                 self.remote_host = _[1][2:]
             except Exception as err:
                 raise exceptions.ConfigurationError(
-                    'Host must be in the form [scheme]://[host]:[port] but '
-                    'was [{0}]'.format(rhost)
+                    "Host must be in the form [scheme]://[host]:[port] but "
+                    "was [{0}]".format(rhost)
                 )
-            rhttp_auth = '{0}:{1}'.format(
-                rclient_info['username'], rclient_info['password']) \
-                if (rclient_info['username'] and rclient_info['password']) else None
-            if rhost[:5] == 'http:':
+            rhttp_auth = (
+                "{0}:{1}".format(rclient_info["username"], rclient_info["password"])
+                if (rclient_info["username"] and rclient_info["password"])
+                else None
+            )
+            if rhost[:5] == "http:":
                 use_ssl = False
-            elif rhost[:5] == 'https':
+            elif rhost[:5] == "https":
                 use_ssl = True
             else:
                 raise exceptions.ConfigurationError(
-                    'Host must be in URL format. You provided: '
-                    '{0}'.format(rclient_info['host'])
+                    "Host must be in URL format. You provided: "
+                    "{0}".format(rclient_info["host"])
                 )
 
             # Let's set a decent remote timeout for initially reading
@@ -1368,24 +1445,25 @@ class Reindex(object):
             remote_timeout = 180
 
             # The rest only applies if using filters for remote indices
-            if self.body['source']['index'] == 'REINDEX_SELECTION':
-                self.loggit.debug('Filtering indices from remote')
+            if self.body["source"]["index"] == "REINDEX_SELECTION":
+                self.loggit.debug("Filtering indices from remote")
                 from .indexlist import IndexList
+
                 self.loggit.debug(
-                    'Remote client args: '
-                    'host={0} '
-                    'http_auth={1} '
-                    'url_prefix={2} '
-                    'use_ssl={3} '
-                    'ssl_no_validate={4} '
-                    'certificate={5} '
-                    'client_cert={6} '
-                    'client_key={7} '
-                    'aws_key={8} '
-                    'aws_secret_key={9} '
-                    'aws_region={10} '
-                    'timeout={11} '
-                    'skip_version_test=True'.format(
+                    "Remote client args: "
+                    "host={0} "
+                    "http_auth={1} "
+                    "url_prefix={2} "
+                    "use_ssl={3} "
+                    "ssl_no_validate={4} "
+                    "certificate={5} "
+                    "client_cert={6} "
+                    "client_key={7} "
+                    "aws_key={8} "
+                    "aws_secret_key={9} "
+                    "aws_region={10} "
+                    "timeout={11} "
+                    "skip_version_test=True".format(
                         rhost,
                         rhttp_auth,
                         remote_url_prefix,
@@ -1397,11 +1475,11 @@ class Reindex(object):
                         remote_aws_key,
                         remote_aws_secret_key,
                         remote_aws_region,
-                        remote_timeout
+                        remote_timeout,
                     )
                 )
 
-                try: # let's try to build a remote connection with these!
+                try:  # let's try to build a remote connection with these!
                     rclient = utils.get_client(
                         host=rhost,
                         http_auth=rhttp_auth,
@@ -1415,38 +1493,37 @@ class Reindex(object):
                         aws_secret_key=remote_aws_secret_key,
                         aws_region=remote_aws_region,
                         skip_version_test=True,
-                        timeout=remote_timeout
+                        timeout=remote_timeout,
                     )
                 except Exception as err:
                     self.loggit.error(
-                        'Unable to establish connection to remote Elasticsearch'
-                        ' with provided credentials/certificates/settings.'
+                        "Unable to establish connection to remote Elasticsearch"
+                        " with provided credentials/certificates/settings."
                     )
                     utils.report_failure(err)
                 try:
                     rio = IndexList(rclient)
-                    rio.iterate_filters({'filters': remote_filters})
+                    rio.iterate_filters({"filters": remote_filters})
                     try:
                         rio.empty_list_check()
                     except exceptions.NoIndices:
                         raise exceptions.FailedExecution(
-                            'No actionable remote indices selected after '
-                            'applying filters.'
+                            "No actionable remote indices selected after "
+                            "applying filters."
                         )
-                    self.body['source']['index'] = rio.indices
+                    self.body["source"]["index"] = rio.indices
                 except Exception as err:
-                    self.loggit.error(
-                        'Unable to get/filter list of remote indices.'
-                    )
+                    self.loggit.error("Unable to get/filter list of remote indices.")
                     utils.report_failure(err)
 
         self.loggit.debug(
-            'Reindexing indices: {0}'.format(self.body['source']['index']))
+            "Reindexing indices: {0}".format(self.body["source"]["index"])
+        )
 
     def _get_request_body(self, source, dest):
         body = deepcopy(self.body)
-        body['source']['index'] = source
-        body['dest']['index'] = dest
+        body["source"]["index"] = source
+        body["dest"]["index"] = dest
         return body
 
     def _get_reindex_args(self, source, dest):
@@ -1454,21 +1531,22 @@ class Reindex(object):
         # thing if wait_for_completion is set to True. Report the task_id
         # either way.
         reindex_args = {
-            'body':self._get_request_body(source, dest), 'refresh':self.refresh,
-            'requests_per_second': self.requests_per_second,
-            'timeout': self.timeout,
-            'wait_for_active_shards': self.wait_for_active_shards,
-            'wait_for_completion': False,
-            'slices': self.slices
+            "body": self._get_request_body(source, dest),
+            "refresh": self.refresh,
+            "requests_per_second": self.requests_per_second,
+            "timeout": self.timeout,
+            "wait_for_active_shards": self.wait_for_active_shards,
+            "wait_for_completion": False,
+            "slices": self.slices,
         }
         version = utils.get_version(self.client)
         if version < (1, 0, 0):
             self.loggit.info(
-                'Your version of elasticsearch ({0}) does not support '
-                'sliced scroll for reindex, so that setting will not be '
-                'used'.format(version)
+                "Your version of elasticsearch ({0}) does not support "
+                "sliced scroll for reindex, so that setting will not be "
+                "used".format(version)
             )
-            del reindex_args['slices']
+            del reindex_args["slices"]
         return reindex_args
 
     def get_processed_items(self, task_id):
@@ -1485,18 +1563,20 @@ class Reindex(object):
         except Exception as err:
             raise exceptions.CuratorException(
                 'Unable to obtain task information for task_id "{0}". Exception '
-                '{1}'.format(task_id, err)
+                "{1}".format(task_id, err)
             )
         total_processed_items = -1
-        task = task_data['task']
-        if task['action'] == 'indices:data/write/reindex':
-            self.loggit.debug('It\'s a REINDEX TASK')
-            self.loggit.debug('TASK_DATA: {0}'.format(task_data))
-            self.loggit.debug('TASK_DATA keys: {0}'.format(list(task_data.keys())))
-            if 'response' in task_data:
-                response = task_data['response']
-                total_processed_items = response['total']
-                self.loggit.debug('total_processed_items = {0}'.format(total_processed_items))
+        task = task_data["task"]
+        if task["action"] == "indices:data/write/reindex":
+            self.loggit.debug("It's a REINDEX TASK")
+            self.loggit.debug("TASK_DATA: {0}".format(task_data))
+            self.loggit.debug("TASK_DATA keys: {0}".format(list(task_data.keys())))
+            if "response" in task_data:
+                response = task_data["response"]
+                total_processed_items = response["total"]
+                self.loggit.debug(
+                    "total_processed_items = {0}".format(total_processed_items)
+                )
 
         return total_processed_items
 
@@ -1507,7 +1587,7 @@ class Reindex(object):
         if processed_items == 0:
             self.loggit.info(
                 'No items were processed. Will not check if target index "{0}" '
-                'exists'.format(index_name)
+                "exists".format(index_name)
             )
         else:
             # Verify the destination index is there after the fact
@@ -1516,31 +1596,29 @@ class Reindex(object):
             if not index_exists and not alias_instead:
                 self.loggit.error(
                     'The index described as "{0}" was not found after the reindex '
-                    'operation. Check Elasticsearch logs for more '
-                    'information.'.format(index_name)
+                    "operation. Check Elasticsearch logs for more "
+                    "information.".format(index_name)
                 )
                 if self.remote:
                     self.loggit.error(
                         'Did you forget to add "reindex.remote.whitelist: '
                         '{0}:{1}" to the elasticsearch.yml file on the '
-                        '"dest" node?'.format(
-                            self.remote_host, self.remote_port
-                        )
+                        '"dest" node?'.format(self.remote_host, self.remote_port)
                     )
                 raise exceptions.FailedExecution(
                     'Reindex failed. The index or alias identified by "{0}" was '
-                    'not found.'.format(index_name)
+                    "not found.".format(index_name)
                 )
 
     def sources(self):
         """Generator for sources & dests"""
-        dest = self.body['dest']['index']
-        source_list = utils.ensure_list(self.body['source']['index'])
-        self.loggit.debug('source_list: {0}'.format(source_list))
-        if not source_list or source_list == ['REINDEX_SELECTED']: # Empty list
+        dest = self.body["dest"]["index"]
+        source_list = utils.ensure_list(self.body["source"]["index"])
+        self.loggit.debug("source_list: {0}".format(source_list))
+        if not source_list or source_list == ["REINDEX_SELECTED"]:  # Empty list
             raise exceptions.NoIndices
         if not self.migration:
-            yield self.body['source']['index'], dest
+            yield self.body["source"]["index"], dest
 
         # Loop over all sources (default will only be one)
         else:
@@ -1555,20 +1633,20 @@ class Reindex(object):
         """
 
         return (
-            'request body: {0} with arguments: '
-            'refresh={1} '
-            'requests_per_second={2} '
-            'slices={3} '
-            'timeout={4} '
-            'wait_for_active_shards={5} '
-            'wait_for_completion={6}'.format(
+            "request body: {0} with arguments: "
+            "refresh={1} "
+            "requests_per_second={2} "
+            "slices={3} "
+            "timeout={4} "
+            "wait_for_active_shards={5} "
+            "wait_for_completion={6}".format(
                 self._get_request_body(source, dest),
                 self.refresh,
                 self.requests_per_second,
                 self.slices,
                 self.timeout,
                 self.wait_for_active_shards,
-                self.wfc
+                self.wfc,
             )
         )
 
@@ -1576,10 +1654,10 @@ class Reindex(object):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         for source, dest in self.sources():
             self.loggit.info(
-                'DRY-RUN: REINDEX: {0}'.format(self.show_run_args(source, dest))
+                "DRY-RUN: REINDEX: {0}".format(self.show_run_args(source, dest))
             )
 
     def do_action(self):
@@ -1590,39 +1668,53 @@ class Reindex(object):
         try:
             # Loop over all sources (default will only be one)
             for source, dest in self.sources():
-                self.loggit.info('Commencing reindex operation')
+                self.loggit.info("Commencing reindex operation")
                 self.loggit.debug(
-                    'REINDEX: {0}'.format(self.show_run_args(source, dest)))
+                    "REINDEX: {0}".format(self.show_run_args(source, dest))
+                )
                 response = self.client.reindex(**self._get_reindex_args(source, dest))
 
-                self.loggit.debug('TASK ID = {0}'.format(response['task']))
+                self.loggit.debug("TASK ID = {0}".format(response["task"]))
                 if self.wfc:
                     utils.wait_for_it(
-                        self.client, 'reindex', task_id=response['task'],
-                        wait_interval=self.wait_interval, max_wait=self.max_wait
+                        self.client,
+                        "reindex",
+                        task_id=response["task"],
+                        wait_interval=self.wait_interval,
+                        max_wait=self.max_wait,
                     )
-                    self._post_run_quick_check(dest, response['task'])
+                    self._post_run_quick_check(dest, response["task"])
 
                 else:
                     self.loggit.warn(
                         '"wait_for_completion" set to {0}.  Remember '
                         'to check task_id "{1}" for successful completion '
-                        'manually.'.format(self.wfc, response['task'])
+                        "manually.".format(self.wfc, response["task"])
                     )
         except exceptions.NoIndices as err:
             raise exceptions.NoIndices(
-                'Source index must be list of actual indices. '
-                'It must not be an empty list.')
+                "Source index must be list of actual indices. "
+                "It must not be an empty list."
+            )
         except Exception as err:
             utils.report_failure(err)
 
 
 class Snapshot(object):
     """Snapshot Action Class"""
+
     def __init__(
-            self, ilo, repository=None, name=None, ignore_unavailable=False,
-            include_global_state=True, partial=False, wait_for_completion=True, wait_interval=9,
-            max_wait=-1, skip_repo_fs_check=False
+        self,
+        ilo,
+        repository=None,
+        name=None,
+        ignore_unavailable=False,
+        include_global_state=True,
+        partial=False,
+        wait_for_completion=True,
+        wait_interval=9,
+        max_wait=-1,
+        skip_repo_fs_check=False,
     ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -1655,8 +1747,8 @@ class Snapshot(object):
         ilo.empty_list_check()
         if not utils.repository_exists(ilo.client, repository=repository):
             raise exceptions.ActionError(
-                'Cannot snapshot indices to missing repository: '
-                '{0}'.format(repository)
+                "Cannot snapshot indices to missing repository: "
+                "{0}".format(repository)
             )
         if not name:
             raise exceptions.MissingArgument('No value for "name" provided.')
@@ -1696,10 +1788,10 @@ class Snapshot(object):
             ilo.indices,
             ignore_unavailable=ignore_unavailable,
             include_global_state=include_global_state,
-            partial=partial
+            partial=partial,
         )
 
-        self.loggit = logging.getLogger('curator.actions.snapshot')
+        self.loggit = logging.getLogger("curator.actions.snapshot")
 
     def get_state(self):
         """
@@ -1707,8 +1799,8 @@ class Snapshot(object):
         """
         try:
             self.state = self.client.snapshot.get(
-                repository=self.repository,
-                snapshot=self.name)['snapshots'][0]['state']
+                repository=self.repository, snapshot=self.name
+            )["snapshots"][0]["state"]
             return self.state
         except IndexError:
             raise exceptions.CuratorException(
@@ -1722,10 +1814,10 @@ class Snapshot(object):
         not ``SUCCESS``
         """
         self.get_state()
-        if self.state == 'SUCCESS':
-            self.loggit.info('Snapshot {0} successfully completed.'.format(self.name))
+        if self.state == "SUCCESS":
+            self.loggit.info("Snapshot {0} successfully completed.".format(self.name))
         else:
-            msg = 'Snapshot {0} completed with state: {0}'.format(self.state)
+            msg = "Snapshot {0} completed with state: {0}".format(self.state)
             self.loggit.error(msg)
             raise exceptions.FailedSnapshot(msg)
 
@@ -1733,10 +1825,10 @@ class Snapshot(object):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         self.loggit.info(
-            'DRY-RUN: snapshot: {0} in repository {1} with arguments: '
-            '{2}'.format(self.name, self.repository, self.body)
+            "DRY-RUN: snapshot: {0} in repository {1} with arguments: "
+            "{2}".format(self.name, self.repository, self.body)
         )
 
     def do_action(self):
@@ -1746,7 +1838,7 @@ class Snapshot(object):
         if not self.skip_repo_fs_check:
             utils.test_repo_fs(self.client, self.repository)
         if utils.snapshot_running(self.client):
-            raise exceptions.SnapshotInProgress('Snapshot already in progress.')
+            raise exceptions.SnapshotInProgress("Snapshot already in progress.")
         try:
             self.loggit.info(
                 'Creating snapshot "{0}" from indices: {1}'.format(
@@ -1757,32 +1849,50 @@ class Snapshot(object):
             # thing if wait_for_completion is set to True. Report the task_id
             # either way.
             self.client.snapshot.create(
-                repository=self.repository, snapshot=self.name, body=self.body,
-                wait_for_completion=False
+                repository=self.repository,
+                snapshot=self.name,
+                body=self.body,
+                wait_for_completion=False,
             )
             if self.wait_for_completion:
                 utils.wait_for_it(
-                    self.client, 'snapshot', snapshot=self.name,
+                    self.client,
+                    "snapshot",
+                    snapshot=self.name,
                     repository=self.repository,
-                    wait_interval=self.wait_interval, max_wait=self.max_wait
+                    wait_interval=self.wait_interval,
+                    max_wait=self.max_wait,
                 )
                 self.report_state()
             else:
                 self.loggit.warn(
                     '"wait_for_completion" set to {0}.'
-                    'Remember to check for successful completion '
-                    'manually.'.format(self.wait_for_completion)
+                    "Remember to check for successful completion "
+                    "manually.".format(self.wait_for_completion)
                 )
         except Exception as err:
             utils.report_failure(err)
 
+
 class Restore(object):
     """Restore Action Class"""
+
     def __init__(
-            self, slo, name=None, indices=None, include_aliases=False, ignore_unavailable=False,
-            include_global_state=False, partial=False, rename_pattern=None,
-            rename_replacement=None, extra_settings={}, wait_for_completion=True, wait_interval=9,
-            max_wait=-1, skip_repo_fs_check=False
+        self,
+        slo,
+        name=None,
+        indices=None,
+        include_aliases=False,
+        ignore_unavailable=False,
+        include_global_state=False,
+        partial=False,
+        rename_pattern=None,
+        rename_replacement=None,
+        extra_settings={},
+        wait_for_completion=True,
+        wait_interval=9,
+        max_wait=-1,
+        skip_repo_fs_check=False,
     ):
         """
         :arg slo: A :class:`curator.snapshotlist.SnapshotList` object
@@ -1828,7 +1938,7 @@ class Restore(object):
             validation, but won't likely affect snapshot success.
         :type skip_repo_fs_check: bool
         """
-        self.loggit = logging.getLogger('curator.actions.snapshot')
+        self.loggit = logging.getLogger("curator.actions.snapshot")
         utils.verify_snapshot_list(slo)
         # Get the most recent snapshot.
         most_recent = slo.most_recent()
@@ -1837,12 +1947,11 @@ class Restore(object):
         #: Will use a provided snapshot name, or the most recent snapshot in slo
         self.name = name if name else most_recent
         # Stop here now, if it's not a successful snapshot.
-        if slo.snapshot_info[self.name]['state'] == 'PARTIAL' and partial:
-            self.loggit.warn(
-                'Performing restore of snapshot in state PARTIAL.')
-        elif slo.snapshot_info[self.name]['state'] != 'SUCCESS':
+        if slo.snapshot_info[self.name]["state"] == "PARTIAL" and partial:
+            self.loggit.warn("Performing restore of snapshot in state PARTIAL.")
+        elif slo.snapshot_info[self.name]["state"] != "SUCCESS":
             raise exceptions.CuratorException(
-                'Restore operation can only be performed on snapshots with '
+                "Restore operation can only be performed on snapshots with "
                 'state "SUCCESS", or "PARTIAL" if partial=True.'
             )
         #: Instance variable.
@@ -1858,7 +1967,7 @@ class Restore(object):
         if indices:
             self.indices = utils.ensure_list(indices)
         else:
-            self.indices = slo.snapshot_info[self.name]['indices']
+            self.indices = slo.snapshot_info[self.name]["indices"]
         self.wfc = wait_for_completion
         #: Instance variable
         #: How many seconds to wait between checks for completion.
@@ -1868,15 +1977,15 @@ class Restore(object):
         #: exception. A value of -1 means wait forever.
         self.max_wait = max_wait
         #: Instance variable version of ``rename_pattern``
-        self.rename_pattern = rename_pattern if rename_replacement is not None \
-            else ''
+        self.rename_pattern = rename_pattern if rename_replacement is not None else ""
         #: Instance variable version of ``rename_replacement``
-        self.rename_replacement = rename_replacement if rename_replacement \
-            is not None else ''
+        self.rename_replacement = (
+            rename_replacement if rename_replacement is not None else ""
+        )
         #: Also an instance variable version of ``rename_replacement``
         #: but with Java regex group designations of ``$#``
         #: converted to Python's ``\\#`` style.
-        self.py_rename_replacement = self.rename_replacement.replace('$', '\\')
+        self.py_rename_replacement = self.rename_replacement.replace("$", "\\")
         #: Instance variable.
         #: Internally accessible copy of `skip_repo_fs_check`
         self.skip_repo_fs_check = skip_repo_fs_check
@@ -1884,46 +1993,41 @@ class Restore(object):
         #: Instance variable.
         #: Populated at instance creation time from the other options
         self.body = {
-            'indices' : self.indices,
-            'include_aliases' : include_aliases,
-            'ignore_unavailable' : ignore_unavailable,
-            'include_global_state' : include_global_state,
-            'partial' : partial,
-            'rename_pattern' : self.rename_pattern,
-            'rename_replacement' : self.rename_replacement,
+            "indices": self.indices,
+            "include_aliases": include_aliases,
+            "ignore_unavailable": ignore_unavailable,
+            "include_global_state": include_global_state,
+            "partial": partial,
+            "rename_pattern": self.rename_pattern,
+            "rename_replacement": self.rename_replacement,
         }
         if extra_settings:
             self.loggit.debug(
-                'Adding extra_settings to restore body: '
-                '{0}'.format(extra_settings)
+                "Adding extra_settings to restore body: " "{0}".format(extra_settings)
             )
             try:
                 self.body.update(extra_settings)
             except:
-                self.loggit.error(
-                    'Unable to apply extra settings to restore body')
-        self.loggit.debug('REPOSITORY: {0}'.format(self.repository))
-        self.loggit.debug('WAIT_FOR_COMPLETION: {0}'.format(self.wfc))
-        self.loggit.debug(
-            'SKIP_REPO_FS_CHECK: {0}'.format(self.skip_repo_fs_check))
-        self.loggit.debug('BODY: {0}'.format(self.body))
+                self.loggit.error("Unable to apply extra settings to restore body")
+        self.loggit.debug("REPOSITORY: {0}".format(self.repository))
+        self.loggit.debug("WAIT_FOR_COMPLETION: {0}".format(self.wfc))
+        self.loggit.debug("SKIP_REPO_FS_CHECK: {0}".format(self.skip_repo_fs_check))
+        self.loggit.debug("BODY: {0}".format(self.body))
         # Populate the expected output index list.
         self._get_expected_output()
 
     def _get_expected_output(self):
         if not self.rename_pattern and not self.rename_replacement:
             self.expected_output = self.indices
-            return # Don't stick around if we're not replacing anything
+            return  # Don't stick around if we're not replacing anything
         self.expected_output = []
         for index in self.indices:
             self.expected_output.append(
-                re.sub(
-                    self.rename_pattern,
-                    self.py_rename_replacement,
-                    index
-                )
+                re.sub(self.rename_pattern, self.py_rename_replacement, index)
             )
-            self.loggit.debug('index: {0} replacement: {1}'.format(index, self.expected_output[-1]))
+            self.loggit.debug(
+                "index: {0} replacement: {1}".format(index, self.expected_output[-1])
+            )
 
     def report_state(self):
         """
@@ -1937,15 +2041,15 @@ class Restore(object):
         for index in self.expected_output:
             if index in all_indices:
                 found_count += 1
-                self.loggit.info('Found restored index {0}'.format(index))
+                self.loggit.info("Found restored index {0}".format(index))
             else:
                 missing.append(index)
         if found_count == len(self.expected_output):
-            self.loggit.info('All indices appear to have been restored.')
+            self.loggit.info("All indices appear to have been restored.")
         else:
             msg = (
-                'Some of the indices do not appear to have been restored. Missing: '
-                '{0}'.format(missing)
+                "Some of the indices do not appear to have been restored. Missing: "
+                "{0}".format(missing)
             )
             self.loggit.error(msg)
             raise exceptions.FailedRestore(msg)
@@ -1954,28 +2058,25 @@ class Restore(object):
         """
         Log what the output would be, but take no action.
         """
-        self.loggit.info('DRY-RUN MODE.  No changes will be made.')
+        self.loggit.info("DRY-RUN MODE.  No changes will be made.")
         self.loggit.info(
-            'DRY-RUN: restore: Repository: {0} Snapshot name: {1} Arguments: '
-            '{2}'.format(
-                self.repository, self.name,
-                {'wait_for_completion' : self.wfc, 'body' : self.body}
+            "DRY-RUN: restore: Repository: {0} Snapshot name: {1} Arguments: "
+            "{2}".format(
+                self.repository,
+                self.name,
+                {"wait_for_completion": self.wfc, "body": self.body},
             )
         )
 
         for index in self.indices:
             if self.rename_pattern and self.rename_replacement:
-                replacement_msg = 'as {0}'.format(
-                    re.sub(
-                        self.rename_pattern,
-                        self.py_rename_replacement,
-                        index
-                    )
+                replacement_msg = "as {0}".format(
+                    re.sub(self.rename_pattern, self.py_rename_replacement, index)
                 )
             else:
-                replacement_msg = ''
+                replacement_msg = ""
             self.loggit.info(
-                'DRY-RUN: restore: Index {0} {1}'.format(index, replacement_msg)
+                "DRY-RUN: restore: Index {0} {1}".format(index, replacement_msg)
             )
 
     def do_action(self):
@@ -1985,41 +2086,64 @@ class Restore(object):
         if not self.skip_repo_fs_check:
             utils.test_repo_fs(self.client, self.repository)
         if utils.snapshot_running(self.client):
-            raise exceptions.SnapshotInProgress('Cannot restore while a snapshot is in progress.')
+            raise exceptions.SnapshotInProgress(
+                "Cannot restore while a snapshot is in progress."
+            )
         try:
             self.loggit.info(
-                'Restoring indices "{0}" from snapshot: {1}'.format(self.indices, self.name)
+                'Restoring indices "{0}" from snapshot: {1}'.format(
+                    self.indices, self.name
+                )
             )
             # Always set wait_for_completion to False. Let 'utils.wait_for_it' do its
             # thing if wait_for_completion is set to True. Report the task_id
             # either way.
             self.client.snapshot.restore(
-                repository=self.repository, snapshot=self.name, body=self.body,
-                wait_for_completion=False
+                repository=self.repository,
+                snapshot=self.name,
+                body=self.body,
+                wait_for_completion=False,
             )
             if self.wfc:
                 utils.wait_for_it(
-                    self.client, 'restore', index_list=self.expected_output,
-                    wait_interval=self.wait_interval, max_wait=self.max_wait
+                    self.client,
+                    "restore",
+                    index_list=self.expected_output,
+                    wait_interval=self.wait_interval,
+                    max_wait=self.max_wait,
                 )
                 self.report_state()
             else:
                 self.loggit.warn(
                     '"wait_for_completion" set to {0}. '
-                    'Remember to check for successful completion '
-                    'manually.'.format(self.wfc)
+                    "Remember to check for successful completion "
+                    "manually.".format(self.wfc)
                 )
         except Exception as err:
             utils.report_failure(err)
 
+
 class Shrink(object):
     """Shrink Action Class"""
+
     def __init__(
-            self, ilo, shrink_node='DETERMINISTIC', node_filters={}, number_of_shards=1,
-            number_of_replicas=1, shrink_prefix='', shrink_suffix='-shrink', copy_aliases=False,
-            delete_after=True, post_allocation={}, wait_for_active_shards=1,
-            wait_for_rebalance=True, extra_settings={}, wait_for_completion=True, wait_interval=9,
-            max_wait=-1
+        self,
+        ilo,
+        shrink_node="DETERMINISTIC",
+        node_filters={},
+        number_of_shards=1,
+        number_of_replicas=1,
+        shrink_prefix="",
+        shrink_suffix="-shrink",
+        copy_aliases=False,
+        delete_after=True,
+        post_allocation={},
+        wait_for_active_shards=1,
+        wait_for_rebalance=True,
+        extra_settings={},
+        wait_for_completion=True,
+        wait_interval=9,
+        max_wait=-1,
     ):
         """
         :arg ilo: A :class:`curator.indexlist.IndexList` object
@@ -2057,10 +2181,10 @@ class Shrink(object):
         :arg max_wait: Maximum number of seconds to `wait_for_completion`
         :type wait_for_completion: bool
         """
-        self.loggit = logging.getLogger('curator.actions.shrink')
+        self.loggit = logging.getLogger("curator.actions.shrink")
         utils.verify_index_list(ilo)
-        if 'permit_masters' not in node_filters:
-            node_filters['permit_masters'] = False
+        if "permit_masters" not in node_filters:
+            node_filters["permit_masters"] = False
         #: Instance variable. The Elasticsearch Client object derived from `ilo`
         self.client = ilo.client
         #: Instance variable. Internal reference to `ilo`
@@ -2094,9 +2218,9 @@ class Shrink(object):
         self.shrink_node_name = None
 
         self.body = {
-            'settings': {
-                'index.number_of_shards' : number_of_shards,
-                'index.number_of_replicas' : number_of_replicas,
+            "settings": {
+                "index.number_of_shards": number_of_shards,
+                "index.number_of_replicas": number_of_replicas,
             }
         }
 
@@ -2104,31 +2228,33 @@ class Shrink(object):
             self._merge_extra_settings(extra_settings)
 
         if utils.get_version(self.client) >= (1, 0, 0):
-            self._merge_extra_settings({
-                'settings': {
-                    'index.routing.allocation.require._name': None,
-                    'index.blocks.write': None
-                }})
+            self._merge_extra_settings(
+                {
+                    "settings": {
+                        "index.routing.allocation.require._name": None,
+                        "index.blocks.write": None,
+                    }
+                }
+            )
 
     def _merge_extra_settings(self, extra_settings):
         self.loggit.debug(
-            'Adding extra_settings to shrink body: '
-            '{0}'.format(extra_settings)
+            "Adding extra_settings to shrink body: " "{0}".format(extra_settings)
         )
         # Pop these here, otherwise we could overwrite our default number of
         # shards and replicas
-        if 'settings' in extra_settings:
-            settings = extra_settings.pop('settings')
+        if "settings" in extra_settings:
+            settings = extra_settings.pop("settings")
             try:
-                self.body['settings'].update(settings)
+                self.body["settings"].update(settings)
             except Exception as err:
                 raise exceptions.ConfigurationError(
                     'Unable to apply extra settings "{0}" to shrink body. Exception: {1}'.format(
-                        {'settings':settings}, err
+                        {"settings": settings}, err
                     )
                 )
         if extra_settings:
-            try: # Apply any remaining keys, should there be any.
+            try:  # Apply any remaining keys, should there be any.
                 self.body.update(extra_settings)
             except Exception as err:
                 raise exceptions.ConfigurationError(
@@ -2140,30 +2266,32 @@ class Shrink(object):
     def _data_node(self, node_id):
         roles = utils.node_roles(self.client, node_id)
         name = utils.node_id_to_name(self.client, node_id)
-        if not 'data' in roles:
+        if not "data" in roles:
             self.loggit.info('Skipping node "{0}": non-data node'.format(name))
             return False
-        if 'master' in roles and not self.node_filters['permit_masters']:
+        if "master" in roles and not self.node_filters["permit_masters"]:
             self.loggit.info('Skipping node "{0}": master node'.format(name))
             return False
-        elif 'master' in roles and self.node_filters['permit_masters']:
+        elif "master" in roles and self.node_filters["permit_masters"]:
             self.loggit.warn(
                 'Not skipping node "{0}" which is a master node (not recommended), but '
-                'permit_masters is True'.format(name)
+                "permit_masters is True".format(name)
             )
             return True
-        else: # It does have `data` as a role.
+        else:  # It does have `data` as a role.
             return True
 
     def _exclude_node(self, name):
-        if 'exclude_nodes' in self.node_filters:
-            if name in self.node_filters['exclude_nodes']:
-                self.loggit.info('Excluding node "{0}" due to node_filters'.format(name))
+        if "exclude_nodes" in self.node_filters:
+            if name in self.node_filters["exclude_nodes"]:
+                self.loggit.info(
+                    'Excluding node "{0}" due to node_filters'.format(name)
+                )
                 return True
         return False
 
     def _shrink_target(self, name):
-        return '{0}{1}{2}'.format(self.shrink_prefix, name, self.shrink_suffix)
+        return "{0}{1}{2}".format(self.shrink_prefix, name, self.shrink_suffix)
 
     def qualify_single_node(self):
         """Qualify a single node as a shrink target"""
@@ -2173,16 +2301,19 @@ class Shrink(object):
             self.shrink_node_name = self.shrink_node
         else:
             raise exceptions.ConfigurationError(
-                'Unable to find node named: "{0}"'.format(self.shrink_node))
+                'Unable to find node named: "{0}"'.format(self.shrink_node)
+            )
         if self._exclude_node(self.shrink_node):
             raise exceptions.ConfigurationError(
-                'Node "{0}" listed for exclusion'.format(self.shrink_node))
+                'Node "{0}" listed for exclusion'.format(self.shrink_node)
+            )
         if not self._data_node(node_id):
             raise exceptions.ActionError(
-                'Node "{0}" is not usable as a shrink node'.format(self.shrink_node))
-        self.shrink_node_avail = (
-            self.client.nodes.stats()['nodes'][node_id]['fs']['total']['available_in_bytes']
-        )
+                'Node "{0}" is not usable as a shrink node'.format(self.shrink_node)
+            )
+        self.shrink_node_avail = self.client.nodes.stats()["nodes"][node_id]["fs"][
+            "total"
+        ]["available_in_bytes"]
 
     def most_available_node(self):
         """
@@ -2195,16 +2326,16 @@ class Shrink(object):
         # mvn_total = 0
         mvn_name = None
         mvn_id = None
-        nodes = self.client.nodes.stats()['nodes']
+        nodes = self.client.nodes.stats()["nodes"]
         for node_id in nodes:
-            name = nodes[node_id]['name']
+            name = nodes[node_id]["name"]
             if self._exclude_node(name):
                 self.loggit.debug('Node "{0}" excluded by node filters'.format(name))
                 continue
             if not self._data_node(node_id):
                 self.loggit.debug('Node "{0}" is not a data node'.format(name))
                 continue
-            value = nodes[node_id]['fs']['total']['available_in_bytes']
+            value = nodes[node_id]["fs"]["total"]["available_in_bytes"]
             if value > mvn_avail:
                 mvn_name = name
                 mvn_id = node_id
@@ -2217,19 +2348,24 @@ class Shrink(object):
 
     def route_index(self, idx, allocation_type, key, value):
         """Apply the indicated shard routing allocation"""
-        bkey = 'index.routing.allocation.{0}.{1}'.format(allocation_type, key)
-        routing = {bkey : value}
+        bkey = "index.routing.allocation.{0}.{1}".format(allocation_type, key)
+        routing = {bkey: value}
         try:
             self.client.indices.put_settings(index=idx, body=routing)
             if self.wait_for_rebalance:
                 utils.wait_for_it(
-                    self.client, 'allocation', wait_interval=self.wait_interval,
-                    max_wait=self.max_wait
+                    self.client,
+                    "allocation",
+                    wait_interval=self.wait_interval,
+                    max_wait=self.max_wait,
                 )
             else:
                 utils.wait_for_it(
-                    self.client, 'relocate', index=idx, wait_interval=self.wait_interval,
-                    max_wait=self.max_wait
+                    self.client,
+                    "relocate",
+                    index=idx,
+                    wait_interval=self.wait_interval,
+                    max_wait=self.max_wait,
                 )
         except Exception as err:
             utils.report_failure(err)
@@ -2238,36 +2374,36 @@ class Shrink(object):
         if not dry_run:
             raise exceptions.ActionError(error_msg)
         else:
-            self.loggit.warn('DRY-RUN: {0}'.format(error_msg))
+            self.loggit.warn("DRY-RUN: {0}".format(error_msg))
 
     def _block_writes(self, idx):
-        block = {'index.blocks.write': True}
+        block = {"index.blocks.write": True}
         self.client.indices.put_settings(index=idx, body=block)
 
     def _unblock_writes(self, idx):
-        unblock = {'index.blocks.write': False}
+        unblock = {"index.blocks.write": False}
         self.client.indices.put_settings(index=idx, body=unblock)
 
     def _check_space(self, idx, dry_run=False):
         # Disk watermark calculation is already baked into `available_in_bytes`
-        size = utils.index_size(self.client, idx, value='primaries')
+        size = utils.index_size(self.client, idx, value="primaries")
         padded = (size * 2) + (32 * 1024)
         if padded < self.shrink_node_avail:
             self.loggit.debug(
                 'Sufficient space available for 2x the size of index "{0}".  Required: {1}, '
-                'available: {2}'.format(idx, padded, self.shrink_node_avail)
+                "available: {2}".format(idx, padded, self.shrink_node_avail)
             )
         else:
             error_msg = (
                 'Insufficient space available for 2x the size of index "{0}", shrinking will '
-                'exceed space available. Required: {1}, available: {2}'.format(
+                "exceed space available. Required: {1}, available: {2}".format(
                     idx, padded, self.shrink_node_avail
                 )
             )
             self.__log_action(error_msg, dry_run)
 
     def _check_node(self):
-        if self.shrink_node != 'DETERMINISTIC':
+        if self.shrink_node != "DETERMINISTIC":
             if not self.shrink_node_name:
                 self.qualify_single_node()
         else:
@@ -2287,81 +2423,92 @@ class Shrink(object):
 
     def _check_doc_count(self, idx, dry_run=False):
         max_docs = 2147483519
-        doc_count = self.client.indices.stats(idx)['indices'][idx]['primaries']['docs']['count']
+        doc_count = self.client.indices.stats(idx)["indices"][idx]["primaries"]["docs"][
+            "count"
+        ]
         if doc_count > (max_docs * self.number_of_shards):
             error_msg = (
-                'Too many documents ({0}) to fit in {1} shard(s). Maximum number of docs per '
-                'shard is {2}'.format(doc_count, self.number_of_shards, max_docs)
+                "Too many documents ({0}) to fit in {1} shard(s). Maximum number of docs per "
+                "shard is {2}".format(doc_count, self.number_of_shards, max_docs)
             )
             self.__log_action(error_msg, dry_run)
 
     def _check_shard_count(self, idx, src_shards, dry_run=False):
         if self.number_of_shards >= src_shards:
             error_msg = (
-                'Target number of shards ({0}) must be less than current number of shards ({1}) '
+                "Target number of shards ({0}) must be less than current number of shards ({1}) "
                 'in index "{2}"'.format(self.number_of_shards, src_shards, idx)
             )
             self.__log_action(error_msg, dry_run)
 
     def _check_shard_factor(self, idx, src_shards, dry_run=False):
         # Find the list of factors of src_shards
-        factors = [x for x in range(1, src_shards+1) if src_shards % x == 0]
+        factors = [x for x in range(1, src_shards + 1) if src_shards % x == 0]
         # Pop the last one, because it will be the value of src_shards
         factors.pop()
         if not self.number_of_shards in factors:
             error_msg = (
                 '"{0}" is not a valid factor of {1} shards.  Valid values are '
-                '{2}'.format(self.number_of_shards, src_shards, factors)
+                "{2}".format(self.number_of_shards, src_shards, factors)
             )
             self.__log_action(error_msg, dry_run)
 
     def _check_all_shards(self, idx):
-        shards = self.client.cluster.state(index=idx)['routing_table']['indices'][idx]['shards']
+        shards = self.client.cluster.state(index=idx)["routing_table"]["indices"][idx][
+            "shards"
+        ]
         found = []
         for shardnum in shards:
             for shard_idx in range(0, len(shards[shardnum])):
-                if shards[shardnum][shard_idx]['node'] == self.shrink_node_id:
+                if shards[shardnum][shard_idx]["node"] == self.shrink_node_id:
                     found.append(
-                        {'shard': shardnum, 'primary': shards[shardnum][shard_idx]['primary']})
+                        {
+                            "shard": shardnum,
+                            "primary": shards[shardnum][shard_idx]["primary"],
+                        }
+                    )
         if len(shards) != len(found):
             self.loggit.debug(
-                'Found these shards on node "{0}": {1}'.format(self.shrink_node_name, found))
+                'Found these shards on node "{0}": {1}'.format(
+                    self.shrink_node_name, found
+                )
+            )
             raise exceptions.ActionError(
                 'Unable to shrink index "{0}" as not all shards were found on the designated '
-                'shrink node ({1}): {2}'.format(idx, self.shrink_node_name, found)
+                "shrink node ({1}): {2}".format(idx, self.shrink_node_name, found)
             )
 
     def pre_shrink_check(self, idx, dry_run=False):
         """Do a shrink preflight check"""
-        self.loggit.debug('BEGIN PRE_SHRINK_CHECK')
-        self.loggit.debug('Check that target exists')
+        self.loggit.debug("BEGIN PRE_SHRINK_CHECK")
+        self.loggit.debug("Check that target exists")
         self._check_target_exists(idx, dry_run)
-        self.loggit.debug('Check doc count constraints')
+        self.loggit.debug("Check doc count constraints")
         self._check_doc_count(idx, dry_run)
-        self.loggit.debug('Check shard count')
-        src_shards = int(self.client.indices.get(idx)[idx]['settings']['index']['number_of_shards'])
+        self.loggit.debug("Check shard count")
+        src_shards = int(
+            self.client.indices.get(idx)[idx]["settings"]["index"]["number_of_shards"]
+        )
         self._check_shard_count(idx, src_shards, dry_run)
-        self.loggit.debug('Check shard factor')
+        self.loggit.debug("Check shard factor")
         self._check_shard_factor(idx, src_shards, dry_run)
-        self.loggit.debug('Check node availability')
+        self.loggit.debug("Check node availability")
         self._check_node()
-        self.loggit.debug('Check available disk space')
+        self.loggit.debug("Check available disk space")
         self._check_space(idx, dry_run)
-        self.loggit.debug('FINISH PRE_SHRINK_CHECK')
+        self.loggit.debug("FINISH PRE_SHRINK_CHECK")
 
     def do_copy_aliases(self, source_idx, target_idx):
         """Copy the aliases to the shrunk index"""
         alias_actions = []
         aliases = self.client.indices.get_alias(index=source_idx)
-        for alias in aliases[source_idx]['aliases']:
-            self.loggit.debug('alias: {0}'.format(alias))
-            alias_actions.append(
-                {'remove': {'index': source_idx, 'alias': alias}})
-            alias_actions.append(
-                {'add': {'index': target_idx, 'alias': alias}})
+        for alias in aliases[source_idx]["aliases"]:
+            self.loggit.debug("alias: {0}".format(alias))
+            alias_actions.append({"remove": {"index": source_idx, "alias": alias}})
+            alias_actions.append({"add": {"index": target_idx, "alias": alias}})
         if alias_actions:
-            self.loggit.info('Copy alias actions: {0}'.format(alias_actions))
-            self.client.indices.update_aliases({'actions' : alias_actions})
+            self.loggit.info("Copy alias actions: {0}".format(alias_actions))
+            self.client.indices.update_aliases({"actions": alias_actions})
 
     def do_dry_run(self):
         """
@@ -2373,7 +2520,7 @@ class Shrink(object):
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
-                for idx in lst: # Shrink can only be done one at a time...
+                for idx in lst:  # Shrink can only be done one at a time...
                     target = self._shrink_target(idx)
                     self.pre_shrink_check(idx, dry_run=True)
                     self.loggit.info(
@@ -2383,7 +2530,7 @@ class Shrink(object):
                     )
                     self.loggit.info(
                         'DRY-RUN: Shrinking index "{0}" to "{1}" with settings: {2}, '
-                        'wait_for_active_shards={3}'.format(
+                        "wait_for_active_shards={3}".format(
                             idx, target, self.body, self.wait_for_active_shards
                         )
                     )
@@ -2391,10 +2538,12 @@ class Shrink(object):
                         self.loggit.info(
                             'DRY-RUN: Applying post-shrink allocation rule "{0}" to index '
                             '"{1}"'.format(
-                                'index.routing.allocation.{0}.{1}:{2}'.format(
-                                    self.post_allocation['allocation_type'],
-                                    self.post_allocation['key'], self.post_allocation['value']
-                                ), target
+                                "index.routing.allocation.{0}.{1}:{2}".format(
+                                    self.post_allocation["allocation_type"],
+                                    self.post_allocation["key"],
+                                    self.post_allocation["value"],
+                                ),
+                                target,
                             )
                         )
                     if self.copy_aliases:
@@ -2403,9 +2552,11 @@ class Shrink(object):
                                 self.client.indices.get_alias(idx)
                             )
                         )
-                        #self.do_copy_aliases(idx, target)
+                        # self.do_copy_aliases(idx, target)
                     if self.delete_after:
-                        self.loggit.info('DRY-RUN: Deleting source index "{0}"'.format(idx))
+                        self.loggit.info(
+                            'DRY-RUN: Deleting source index "{0}"'.format(idx)
+                        )
         except Exception as err:
             utils.report_failure(err)
 
@@ -2415,66 +2566,86 @@ class Shrink(object):
         self.index_list.filter_by_shards(number_of_shards=self.number_of_shards)
         self.index_list.empty_list_check()
         self.loggit.info(
-            'Shrinking {0} selected indices: {1}'.format(
+            "Shrinking {0} selected indices: {1}".format(
                 len(self.index_list.indices), self.index_list.indices
             )
         )
         try:
             index_lists = utils.chunk_index_list(self.index_list.indices)
             for lst in index_lists:
-                for idx in lst: # Shrink can only be done one at a time...
+                for idx in lst:  # Shrink can only be done one at a time...
                     target = self._shrink_target(idx)
-                    self.loggit.info('Source index: {0} -- Target index: {1}'.format(idx, target))
+                    self.loggit.info(
+                        "Source index: {0} -- Target index: {1}".format(idx, target)
+                    )
                     # Pre-check ensures disk space available for each pass of the loop
                     self.pre_shrink_check(idx)
                     # Route the index to the shrink node
                     self.loggit.info(
-                        'Moving shards to shrink node: "{0}"'.format(self.shrink_node_name))
-                    self.route_index(idx, 'require', '_name', self.shrink_node_name)
+                        'Moving shards to shrink node: "{0}"'.format(
+                            self.shrink_node_name
+                        )
+                    )
+                    self.route_index(idx, "require", "_name", self.shrink_node_name)
                     # Ensure a copy of each shard is present
                     self._check_all_shards(idx)
                     # Block writes on index
                     self._block_writes(idx)
                     # Do final health check
-                    if not utils.health_check(self.client, status='green'):
+                    if not utils.health_check(self.client, status="green"):
                         raise exceptions.ActionError(
-                            'Unable to proceed with shrink action. Cluster health is not "green"')
+                            'Unable to proceed with shrink action. Cluster health is not "green"'
+                        )
                     # Do the shrink
                     self.loggit.info(
                         'Shrinking index "{0}" to "{1}" with settings: {2}, wait_for_active_shards'
-                        '={3}'.format(idx, target, self.body, self.wait_for_active_shards)
+                        "={3}".format(
+                            idx, target, self.body, self.wait_for_active_shards
+                        )
                     )
                     try:
                         self.client.indices.shrink(
-                            index=idx, target=target, body=self.body,
-                            wait_for_active_shards=self.wait_for_active_shards
+                            index=idx,
+                            target=target,
+                            body=self.body,
+                            wait_for_active_shards=self.wait_for_active_shards,
                         )
                         # Wait for it to complete
                         if self.wfc:
                             self.loggit.debug(
-                                'Wait for shards to complete allocation for index: '
-                                '{0}'.format(target)
+                                "Wait for shards to complete allocation for index: "
+                                "{0}".format(target)
                             )
                             if self.wait_for_rebalance:
                                 utils.wait_for_it(
-                                    self.client, 'shrink', wait_interval=self.wait_interval,
-                                    max_wait=self.max_wait
+                                    self.client,
+                                    "shrink",
+                                    wait_interval=self.wait_interval,
+                                    max_wait=self.max_wait,
                                 )
                             else:
                                 utils.wait_for_it(
-                                    self.client, 'relocate', index=target,
-                                    wait_interval=self.wait_interval, max_wait=self.max_wait
+                                    self.client,
+                                    "relocate",
+                                    index=target,
+                                    wait_interval=self.wait_interval,
+                                    max_wait=self.max_wait,
                                 )
                     except Exception as err:
                         if self.client.indices.exists(index=target):
                             self.loggit.error(
                                 'Deleting target index "{0}" due to failure to complete '
-                                'shrink'.format(target)
+                                "shrink".format(target)
                             )
                             self.client.indices.delete(index=target)
                         raise exceptions.ActionError(
-                            'Unable to shrink index "{0}" -- Error: {1}'.format(idx, err))
-                    self.loggit.info('Index "{0}" successfully shrunk to "{1}"'.format(idx, target))
+                            'Unable to shrink index "{0}" -- Error: {1}'.format(
+                                idx, err
+                            )
+                        )
+                    self.loggit.info(
+                        'Index "{0}" successfully shrunk to "{1}"'.format(idx, target)
+                    )
                     # Do post-shrink steps
                     # Unblock writes on index (just in case)
                     self._unblock_writes(idx)
@@ -2482,15 +2653,19 @@ class Shrink(object):
                     if self.post_allocation:
                         self.loggit.info(
                             'Applying post-shrink allocation rule "{0}" to index "{1}"'.format(
-                                'index.routing.allocation.{0}.{1}:{2}'.format(
-                                    self.post_allocation['allocation_type'],
-                                    self.post_allocation['key'], self.post_allocation['value']
-                                ), target
+                                "index.routing.allocation.{0}.{1}:{2}".format(
+                                    self.post_allocation["allocation_type"],
+                                    self.post_allocation["key"],
+                                    self.post_allocation["value"],
+                                ),
+                                target,
                             )
                         )
                         self.route_index(
-                            target, self.post_allocation['allocation_type'],
-                            self.post_allocation['key'], self.post_allocation['value']
+                            target,
+                            self.post_allocation["allocation_type"],
+                            self.post_allocation["key"],
+                            self.post_allocation["value"],
                         )
                     ## Copy aliases, if flagged
                     if self.copy_aliases:
@@ -2500,9 +2675,11 @@ class Shrink(object):
                     if self.delete_after:
                         self.loggit.info('Deleting source index "{0}"'.format(idx))
                         self.client.indices.delete(index=idx)
-                    else: # Let's unset the routing we applied here.
-                        self.loggit.info('Unassigning routing for source index: "{0}"'.format(idx))
-                        self.route_index(idx, 'require', '_name', '')
+                    else:  # Let's unset the routing we applied here.
+                        self.loggit.info(
+                            'Unassigning routing for source index: "{0}"'.format(idx)
+                        )
+                        self.route_index(idx, "require", "_name", "")
 
         except Exception as err:
             # Just in case it fails after attempting to meet this condition

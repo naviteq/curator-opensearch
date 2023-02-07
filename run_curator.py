@@ -23,16 +23,17 @@ Be sure to substitute your unicode variant for en_US.utf8
 from curator.cli import cli
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         # This is because click uses decorators, and pylint doesn't catch that
         # pylint: disable=no-value-for-parameter
         cli()
     except RuntimeError as e:
         import sys
-        print('{0}'.format(e))
+
+        print("{0}".format(e))
         sys.exit(1)
     except Exception as e:
-        if 'ASCII' in str(e):
-            print('{0}'.format(e))
+        if "ASCII" in str(e):
+            print("{0}".format(e))
             print(__doc__)

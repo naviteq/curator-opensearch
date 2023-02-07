@@ -6,6 +6,7 @@ from curator.validators import SchemaCheck, config_file
 from curator.utils import ensure_list, get_yaml, prune_nones, test_client_options
 from curator.logtools import LogInfo, Whitelist, Blacklist
 
+
 def test_config(config):
     """Test YAML against the schema"""
     # Get config from yaml file
@@ -14,14 +15,18 @@ def test_config(config):
     yaml_config = {} if not yaml_config else prune_nones(yaml_config)
     # Voluptuous can't verify the schema of a dict if it doesn't have keys,
     # so make sure the keys are at least there and are dict()
-    for k in ['client', 'logging']:
+    for k in ["client", "logging"]:
         if k not in yaml_config:
             yaml_config[k] = {}
         else:
             yaml_config[k] = prune_nones(yaml_config[k])
     return SchemaCheck(
-        yaml_config, config_file.client(), 'Client Configuration', 'full configuration dictionary'
+        yaml_config,
+        config_file.client(),
+        "Client Configuration",
+        "full configuration dictionary",
     ).result()
+
 
 def set_logging(log_opts):
     """Configure global logging options"""
@@ -29,33 +34,37 @@ def set_logging(log_opts):
     loginfo = LogInfo(log_opts)
     logging.root.addHandler(loginfo.handler)
     logging.root.setLevel(loginfo.numeric_log_level)
-    _ = logging.getLogger('curator.cli')
+    _ = logging.getLogger("curator.cli")
     # Set up NullHandler() to handle nested opensearchpy.trace Logger
     # instance in opensearch-py python client
-    logging.getLogger('opensearchpy.trace').addHandler(logging.NullHandler())
-    if log_opts['blacklist']:
-        for bl_entry in ensure_list(log_opts['blacklist']):
+    logging.getLogger("opensearchpy.trace").addHandler(logging.NullHandler())
+    if log_opts["blacklist"]:
+        for bl_entry in ensure_list(log_opts["blacklist"]):
             for handler in logging.root.handlers:
                 handler.addFilter(Blacklist(bl_entry))
+
 
 def process_config(yaml_file):
     """Process yaml_file and return a valid client configuration"""
     config = test_config(yaml_file)
-    set_logging(config['logging'])
-    test_client_options(config['client'])
-    return config['client']
+    set_logging(config["logging"])
+    test_client_options(config["client"])
+    return config["client"]
+
 
 def password_filter(data):
     """
     Return a deepcopy of the dictionary with any password fields hidden
     """
+
     def iterdict(mydict):
         for key, value in mydict.items():
             if isinstance(value, dict):
                 iterdict(value)
             elif key == "http_auth":
-                mydict.update({"http_auth": (value[0],"REDACTED")})
+                mydict.update({"http_auth": (value[0], "REDACTED")})
             elif key == "password":
                 mydict.update({"password": "REDACTED"})
         return mydict
+
     return iterdict(deepcopy(data))

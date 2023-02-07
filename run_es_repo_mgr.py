@@ -23,14 +23,15 @@ Be sure to substitute your unicode variant for en_US.utf8
 from curator.repomgrcli import repo_mgr_cli
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         repo_mgr_cli()
     except RuntimeError as e:
         import sys
-        print('{0}'.format(e))
+
+        print("{0}".format(e))
         sys.exit(1)
     except Exception as e:
-        if 'ASCII' in str(e):
-            print('{0}'.format(e))
+        if "ASCII" in str(e):
+            print("{0}".format(e))
             print(__doc__)

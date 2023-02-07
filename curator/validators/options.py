@@ -1,15 +1,16 @@
 from voluptuous import Schema
 from curator.defaults import option_defaults
 
+
 ## Methods for building the schema
 def action_specific(action):
     options = {
-        'alias' : [
+        "alias": [
             option_defaults.name(action),
             option_defaults.warn_if_no_indices(),
             option_defaults.extra_settings(),
         ],
-        'allocation' : [
+        "allocation": [
             option_defaults.key(),
             option_defaults.value(),
             option_defaults.allocation_type(),
@@ -17,12 +18,12 @@ def action_specific(action):
             option_defaults.wait_interval(action),
             option_defaults.max_wait(action),
         ],
-        'close' : [
+        "close": [
             option_defaults.delete_aliases(),
             option_defaults.skip_flush(),
             option_defaults.ignore_sync_failures(),
         ],
-        'cluster_routing' : [
+        "cluster_routing": [
             option_defaults.routing_type(),
             option_defaults.cluster_routing_setting(),
             option_defaults.cluster_routing_value(),
@@ -30,29 +31,29 @@ def action_specific(action):
             option_defaults.wait_interval(action),
             option_defaults.max_wait(action),
         ],
-        'create_index' : [
+        "create_index": [
             option_defaults.name(action),
             option_defaults.ignore_existing(),
             option_defaults.extra_settings(),
         ],
-        'delete_indices' : [],
-        'delete_snapshots' : [
+        "delete_indices": [],
+        "delete_snapshots": [
             option_defaults.repository(),
             option_defaults.retry_interval(),
             option_defaults.retry_count(),
         ],
-        'forcemerge' : [
+        "forcemerge": [
             option_defaults.delay(),
             option_defaults.max_num_segments(),
         ],
-        'freeze': [],
-        'index_settings' : [
+        "freeze": [],
+        "index_settings": [
             option_defaults.index_settings(),
             option_defaults.ignore_unavailable(),
             option_defaults.preserve_existing(),
         ],
-        'open' : [],
-        'reindex' : [
+        "open": [],
+        "reindex": [
             option_defaults.request_body(),
             option_defaults.refresh(),
             option_defaults.requests_per_second(),
@@ -74,20 +75,20 @@ def action_specific(action):
             option_defaults.migration_prefix(),
             option_defaults.migration_suffix(),
         ],
-        'replicas' : [
+        "replicas": [
             option_defaults.count(),
             option_defaults.wait_for_completion(action),
             option_defaults.wait_interval(action),
             option_defaults.max_wait(action),
         ],
-        'rollover' : [
+        "rollover": [
             option_defaults.name(action),
             option_defaults.new_index(),
             option_defaults.conditions(),
             option_defaults.extra_settings(),
             option_defaults.wait_for_active_shards(action),
         ],
-        'restore' : [
+        "restore": [
             option_defaults.repository(),
             option_defaults.name(action),
             option_defaults.indices(),
@@ -103,7 +104,7 @@ def action_specific(action):
             option_defaults.max_wait(action),
             option_defaults.skip_repo_fs_check(),
         ],
-        'snapshot' : [
+        "snapshot": [
             option_defaults.repository(),
             option_defaults.name(action),
             option_defaults.ignore_unavailable(),
@@ -114,7 +115,7 @@ def action_specific(action):
             option_defaults.max_wait(action),
             option_defaults.skip_repo_fs_check(),
         ],
-        'shrink' : [
+        "shrink": [
             option_defaults.shrink_node(),
             option_defaults.node_filters(),
             option_defaults.number_of_shards(),
@@ -131,9 +132,10 @@ def action_specific(action):
             option_defaults.wait_interval(action),
             option_defaults.max_wait(action),
         ],
-        'unfreeze': [],
+        "unfreeze": [],
     }
     return options[action]
+
 
 def get_schema(action):
     # Appending the options dictionary seems to be the best way, since the

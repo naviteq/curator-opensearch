@@ -274,7 +274,7 @@ class TestCheckVersion(TestCase):
 
     def test_check_version_greater_than(self):
         client = Mock()
-        client.info.return_value = {"version": {"number": "3.4.42"}}
+        client.info.return_value = {"version": {"number": "7.11.42"}}
         self.assertRaises(curator.CuratorException, curator.check_version, client)
 
 
@@ -1904,7 +1904,7 @@ class Test_do_version_check(TestCase):
     def test_version_fails(self):
         """Test a failing version number"""
         client = Mock()
-        client.info.return_value = {"version": {"number": "3.4.2"}}
+        client.info.return_value = {"version": {"number": "0.4.2"}}
         self.assertRaises(
             curator.exceptions.ClientException,
             curator.utils.do_version_check,

@@ -52,9 +52,18 @@ jobs:
           max_attempts: 3
           command: python test/run_tests.py unit
 
+  version:
+    name: Update version 
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/update-version
+        with:
+          version: pr
+
   docker:
     uses: naviteq/github-actions/.github/workflows/docker-build.yaml@main
-    needs: [format, unit-test]
+    needs: [version, format, unit-test]
     with:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
@@ -62,9 +71,18 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  test:
+    needs: [docker]
+    runs-on: ubuntu-18.04
+    container:
+      image: ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
+      options: --entrypoint /bin/sh
+    steps:
+      - run: /curator/curator --version
+
   helm:
     uses: naviteq/github-actions/.github/workflows/helm-release.yaml@main
-    needs: [docker]
+    needs: [test]
     with:
       CHART_LOCATION: helm
     secrets:

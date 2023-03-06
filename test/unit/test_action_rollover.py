@@ -51,7 +51,7 @@ class TestActionRollover(TestCase):
 
     def test_init_raise_max_size_on_unsupported_version(self):
         client = Mock()
-        client.info.return_value = {"version": {"number": "0.0.9"}}
+        client.info.return_value = {"version": {"number": "0.1.0"}}
         client.indices.get_alias.return_value = testvars.rollable_alias
         conditions = {"max_size": "1g"}
         self.assertRaises(

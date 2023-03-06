@@ -1,0 +1,21 @@
+---
+name: curator version update
+inputs:
+  version:
+    type: choice
+    description: New version
+    required: true
+    options: 
+    - tag
+    - pr
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Update version
+      shell: bash
+      run: |
+        if [[ "${{ inputs.version }}" == "pr" ]]; then VERSION="\\1+dev.${GITHUB_SHA}"; fi
+        if [[ "${{ inputs.version }}" == "tag" ]]; then VERSION="${GITHUB_REF_NAME/v/}"; fi
+        sed -i -E "s#^__version__ = \"(.+)\"#__version__ = \"$VERSION\"#g" curator/_version.py
+        cat curator/_version.py

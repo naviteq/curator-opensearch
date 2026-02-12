@@ -69,7 +69,6 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
       USERNAME: ${{ github.actor }}
-      BUILD_ARGS: "NR71_TEST=iteration4"
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

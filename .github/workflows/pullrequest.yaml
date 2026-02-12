@@ -63,7 +63,8 @@ jobs:
 
   docker:
     uses: naviteq/github-actions/.github/workflows/docker-build.yaml@nr-71/docker-build-rework
-    needs: [version, format, unit-test]
+    # needs: [version, format, unit-test]  # temporarily reduced for NR-71 testing
+    needs: [version]
     with:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}

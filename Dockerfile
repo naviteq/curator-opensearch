@@ -12,13 +12,13 @@ RUN ln -s /lib /lib64
 RUN pip3 install -r requirements.txt
 COPY . .
 RUN python3 setup.py build_exe
+RUN cp -r /build/exe.linux-*-3.9 /build/exe
 
 FROM alpine:3.16
 RUN apk --no-cache upgrade && apk --no-cache add openssl-dev expat
-COPY --from=builder build/exe.linux-x86_64-3.9 /curator/
+COPY --from=builder /build/exe /curator/
 RUN mkdir /.curator
 
 USER nobody:nobody
 ENV LD_LIBRARY_PATH /curator/lib:$LD_LIBRARY_PATH
 ENTRYPOINT ["/curator/curator"]
-

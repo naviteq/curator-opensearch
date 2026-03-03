@@ -60,17 +60,17 @@ try:
     curator_exe = Executable(
         "run_curator.py",
         base=base,
-        targetName="curator",
+        target_name="curator",
     )
     curator_cli_exe = Executable(
         "run_singleton.py",
         base=base,
-        targetName="curator_cli",
+        target_name="curator_cli",
     )
     repomgr_exe = Executable(
         "run_es_repo_mgr.py",
         base=base,
-        targetName="es_repo_mgr",
+        target_name="es_repo_mgr",
     )
     build_dict = {
         "build_exe": dict(
@@ -81,13 +81,13 @@ try:
     }
     if sys.platform == "win32":
         curator_exe = Executable(
-            "run_curator.py", base=base, targetName="curator.exe", icon=icon
+            "run_curator.py", base=base, target_name="curator.exe", icon=icon
         )
         curator_cli_exe = Executable(
-            "run_singleton.py", base=base, targetName="curator_cli.exe", icon=icon
+            "run_singleton.py", base=base, target_name="curator_cli.exe", icon=icon
         )
         repomgr_exe = Executable(
-            "run_es_repo_mgr.py", base=base, targetName="es_repo_mgr.exe", icon=icon
+            "run_es_repo_mgr.py", base=base, target_name="es_repo_mgr.exe", icon=icon
         )
 
         msvcrt = "vcruntime140.dll"

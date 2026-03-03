@@ -61,6 +61,7 @@ jobs:
         with:
           version: pr
 
+
   docker:
     uses: naviteq/github-actions/.github/workflows/docker-build.yaml@nr-71/docker-build-rework
     # needs: [version, format, unit-test]  # temporarily reduced for NR-71 testing
@@ -69,8 +70,31 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
       USERNAME: ${{ github.actor }}
+      RUNNER: ubuntu-latest
+      DOCKERFILE: ./Dockerfile
+      DOCKER_PLATFORMS: linux/amd64,linux/amd64/v2
+      TAG_FLAVOR_SUFFIX: 'suffix'
+      TAG_FLAVOR_PREFIX: 'prefix'
+      DOCKER_PUSH: true
+      SLACK_NOTIFY_ON_SUCCESS: true
+      SECURITY_SCAN_ENABLED: true
+      SECURITY_SCAN_EXIT_CODE: 1
+      SECURITY_SCAN_FAIL_ON_SEVERITY: "LOW"
+      SBOM_ENABLED: true
+      CUSTOM_TAGS: |
+        customtag1
+        customtag2
+        customtagtest
+      BUILD_ARGS: |
+        TESTARG1=true
+        TESTARG2=true2
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SLACK_WEBHOOK: ${{ secrets.TEST_SLACK_WEBHOOK }}
+      BUILD_SECRETS: |
+        smoke_secret=plain-text-value
+        smoke_secret2=plain-text-value2
+
 #
 #  test:
 #    needs: [docker]

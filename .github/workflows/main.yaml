@@ -11,8 +11,14 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
       USERNAME: ${{ github.actor }}
+      DOCKER_PLATFORMS: linux/amd64,linux/arm64
+      BUILD_ARGS: |
+        TEST_MODE=true
+        APP_ENV=ci
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BUILD_SECRETS: |
+        smoke_secret=plain-text-value
 
   #helm:
   #  uses: naviteq/github-actions/.github/workflows/helm-release.yaml@main

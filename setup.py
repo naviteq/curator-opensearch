@@ -43,21 +43,31 @@ try:
     if os.path.exists("Elastic.ico"):
         icon = "Elastic.ico"
 
-    curator_exe = Executable(
-        "run_curator.py",
-        base=base,
-        targetName="curator",
-    )
-    curator_cli_exe = Executable(
-        "run_singleton.py",
-        base=base,
-        targetName="curator_cli",
-    )
-    repomgr_exe = Executable(
-        "run_es_repo_mgr.py",
-        base=base,
-        targetName="es_repo_mgr",
-    )
+    # For Linux, don't specify base (let cx_Freeze choose the right one)
+    # For Windows, use "Console" base
+    if sys.platform == "win32":
+        curator_exe = Executable(
+            "run_curator.py", base=base, target_name="curator.exe", icon=icon
+        )
+        curator_cli_exe = Executable(
+            "run_singleton.py", base=base, target_name="curator_cli.exe", icon=icon
+        )
+        repomgr_exe = Executable(
+            "run_es_repo_mgr.py", base=base, target_name="es_repo_mgr.exe", icon=icon
+        )
+    else:
+        curator_exe = Executable(
+            "run_curator.py",
+            target_name="curator",
+        )
+        curator_cli_exe = Executable(
+            "run_singleton.py",
+            target_name="curator_cli",
+        )
+        repomgr_exe = Executable(
+            "run_es_repo_mgr.py",
+            target_name="es_repo_mgr",
+        )
     build_dict = {
         "build_exe": dict(
             packages=[],
@@ -66,16 +76,6 @@ try:
         )
     }
     if sys.platform == "win32":
-        curator_exe = Executable(
-            "run_curator.py", base=base, targetName="curator.exe", icon=icon
-        )
-        curator_cli_exe = Executable(
-            "run_singleton.py", base=base, targetName="curator_cli.exe", icon=icon
-        )
-        repomgr_exe = Executable(
-            "run_es_repo_mgr.py", base=base, targetName="es_repo_mgr.exe", icon=icon
-        )
-
         msvcrt = "vcruntime140.dll"
         build_dict = {
             "build_exe": {
@@ -126,8 +126,6 @@ try:
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: 3.12",
         ],
-        test_suite="test.run_tests.run_all",
-        tests_require=["pytest"],
         options=build_dict,
         executables=[curator_exe, curator_cli_exe, repomgr_exe],
     )
@@ -164,6 +162,4 @@ except ImportError:
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: 3.12",
         ],
-        test_suite="test.run_tests.run_all",
-        tests_require=["pytest"],
     )

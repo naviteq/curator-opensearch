@@ -16,14 +16,14 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
       - name: Python format
         uses: psf/black@stable
         with:
-          version: 23.1.0
+          version: 24.10.0
 
   unit-test:
     name: Run unit tests
@@ -37,16 +37,15 @@ jobs:
         env:
           discovery.type: single-node
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
-      - uses: syphar/restore-virtualenv@v1
-        id: cache-virtualenv
-      - uses: syphar/restore-pip-download-cache@v1
+          cache: 'pip'
+          cache-dependency-path: '**/requirements-dev.txt'
       - run: pip install -r requirements-dev.txt
       - name: Tests run
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_seconds: 15
           max_attempts: 3
@@ -56,7 +55,7 @@ jobs:
     name: Update version 
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/update-version
         with:
           version: pr
@@ -73,7 +72,7 @@ jobs:
 
   test:
     needs: [docker]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     container:
       image: ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
       options: --entrypoint /bin/sh

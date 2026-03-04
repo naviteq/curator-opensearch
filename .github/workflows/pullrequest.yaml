@@ -62,6 +62,7 @@ jobs:
           version: pr
 
 
+
   docker:
     uses: naviteq/github-actions/.github/workflows/docker-build.yaml@nr-71/docker-build-rework
     # needs: [version, format, unit-test]  # temporarily reduced for NR-71 testing

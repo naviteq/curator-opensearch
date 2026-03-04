@@ -79,7 +79,7 @@ jobs:
       SLACK_NOTIFY_ON_SUCCESS: true
       SECURITY_SCAN_ENABLED: true
       SECURITY_SCAN_EXIT_CODE: 1
-      SECURITY_SCAN_FAIL_ON_SEVERITY: "LOW"
+      SECURITY_SCAN_SEVERITY: "LOW"
       SBOM_ENABLED: true
       CUSTOM_TAGS: |
         customtag1

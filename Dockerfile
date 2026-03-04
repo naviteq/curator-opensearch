@@ -20,9 +20,9 @@ COPY . .
 RUN python3 setup.py build_exe
 RUN cp -r /build/exe.linux-*-3.9 /build/exe
 
-FROM alpine:3.20
-RUN apk --no-cache upgrade && apk --no-cache add openssl-dev expat
-COPY --from=builder /build/exe /curator/
+FROM ubuntu:22.04
+#RUN apk --no-cache upgrade && apk --no-cache add openssl-dev expat
+#COPY --from=builder /build/exe /curator/
 RUN mkdir /.curator
 
 USER nobody:nobody

@@ -1,4 +1,5 @@
 """CLI Wrapper used by run_curator.py"""
+
 import click
 from curator.singletons import cli
 

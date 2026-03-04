@@ -1,4 +1,5 @@
 """Curator importing"""
+
 from curator._version import __version__
 from curator.exceptions import *
 from curator.defaults import *

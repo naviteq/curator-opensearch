@@ -22,7 +22,6 @@ Be sure to substitute your unicode variant for en_US.utf8
 
 from curator.repomgrcli import repo_mgr_cli
 
-
 if __name__ == "__main__":
     try:
         repo_mgr_cli()

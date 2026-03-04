@@ -1,4 +1,5 @@
 """ForceMerge Singleton"""
+
 import click
 from curator.cli_singletons.object_class import cli_action
 from curator.cli_singletons.utils import get_width, validate_filter_json

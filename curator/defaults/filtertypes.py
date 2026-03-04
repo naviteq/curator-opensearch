@@ -1,4 +1,5 @@
 """Filtertype schema definitions"""
+
 import logging
 from curator.defaults import filter_elements, settings
 

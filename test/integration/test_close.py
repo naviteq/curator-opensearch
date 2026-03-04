@@ -1,4 +1,5 @@
 """Integration tests of the Close action class"""
+
 import os
 import logging
 import opensearchpy

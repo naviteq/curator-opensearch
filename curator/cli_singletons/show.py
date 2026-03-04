@@ -1,4 +1,5 @@
 """Show Index/Snapshot Singletons"""
+
 from datetime import datetime
 import click
 from curator.cli_singletons.object_class import cli_action

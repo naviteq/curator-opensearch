@@ -1,4 +1,5 @@
 """Singleton Utils Module"""
+
 import json
 import logging
 import sys
@@ -22,7 +23,6 @@ from curator.actions import (
 from curator.exceptions import NoIndices, NoSnapshots
 from curator.validators import SchemaCheck, config_file, options
 from curator.utils import ensure_list, filters, prune_nones, validate_filters
-
 
 CLASS_MAP = {
     "alias": Alias,

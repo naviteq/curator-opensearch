@@ -1,4 +1,5 @@
 """Object builder"""
+
 import logging
 import sys
 from voluptuous import Schema
@@ -27,7 +28,6 @@ from curator.defaults.settings import snapshot_actions
 from curator.exceptions import ConfigurationError, NoIndices, NoSnapshots
 from curator.validators import SchemaCheck, filters, options
 from curator.utils import get_client, prune_nones, validate_filters
-
 
 CLASS_MAP = {
     "alias": Alias,
@@ -88,9 +88,11 @@ class cli_action:
             self.alias = {
                 "name": option_dict["name"],
                 "extra_settings": option_dict["extra_settings"],
-                "wini": kwargs["warn_if_no_indices"]
-                if "warn_if_no_indices" in kwargs
-                else False,
+                "wini": (
+                    kwargs["warn_if_no_indices"]
+                    if "warn_if_no_indices" in kwargs
+                    else False
+                ),
             }
             for k in ["add", "remove"]:
                 if k in kwargs:

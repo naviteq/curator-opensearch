@@ -1,4 +1,5 @@
 """CLI module for curator_cli"""
+
 import os
 import logging
 import click

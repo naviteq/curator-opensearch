@@ -24,20 +24,6 @@ def get_version():
     return VERSION
 
 
-def get_install_requires():
-    res = ["opensearch-py>=1.0.0"]
-    res.append("urllib3>=1.26.5,<2")
-    res.append("requests>=2.26.0")
-    res.append("boto3>=1.18.18")
-    res.append("requests_aws4auth>=1.1.1")
-    res.append("click>=7.0,<8.0")
-    res.append("pyyaml>=5.4.1")
-    res.append("voluptuous>=0.12.1")
-    res.append("certifi>=2021.5.30")
-    res.append("six>=1.16.0")
-    return res
-
-
 try:
     ### cx_Freeze ###
     from cx_Freeze import setup, Executable
@@ -57,21 +43,31 @@ try:
     if os.path.exists("Elastic.ico"):
         icon = "Elastic.ico"
 
-    curator_exe = Executable(
-        "run_curator.py",
-        base=base,
-        targetName="curator",
-    )
-    curator_cli_exe = Executable(
-        "run_singleton.py",
-        base=base,
-        targetName="curator_cli",
-    )
-    repomgr_exe = Executable(
-        "run_es_repo_mgr.py",
-        base=base,
-        targetName="es_repo_mgr",
-    )
+    # For Linux, don't specify base (let cx_Freeze choose the right one)
+    # For Windows, use "Console" base
+    if sys.platform == "win32":
+        curator_exe = Executable(
+            "run_curator.py", base=base, target_name="curator.exe", icon=icon
+        )
+        curator_cli_exe = Executable(
+            "run_singleton.py", base=base, target_name="curator_cli.exe", icon=icon
+        )
+        repomgr_exe = Executable(
+            "run_es_repo_mgr.py", base=base, target_name="es_repo_mgr.exe", icon=icon
+        )
+    else:
+        curator_exe = Executable(
+            "run_curator.py",
+            target_name="curator",
+        )
+        curator_cli_exe = Executable(
+            "run_singleton.py",
+            target_name="curator_cli",
+        )
+        repomgr_exe = Executable(
+            "run_es_repo_mgr.py",
+            target_name="es_repo_mgr",
+        )
     build_dict = {
         "build_exe": dict(
             packages=[],
@@ -80,16 +76,6 @@ try:
         )
     }
     if sys.platform == "win32":
-        curator_exe = Executable(
-            "run_curator.py", base=base, targetName="curator.exe", icon=icon
-        )
-        curator_cli_exe = Executable(
-            "run_singleton.py", base=base, targetName="curator_cli.exe", icon=icon
-        )
-        repomgr_exe = Executable(
-            "run_es_repo_mgr.py", base=base, targetName="es_repo_mgr.exe", icon=icon
-        )
-
         msvcrt = "vcruntime140.dll"
         build_dict = {
             "build_exe": {
@@ -120,8 +106,6 @@ try:
         download_url="https://github.com/uzhinskiy/curator-opensearch/releases/tag/"
         + get_version(),
         license="Apache License, Version 2.0",
-        install_requires=get_install_requires(),
-        setup_requires=get_install_requires(),
         keywords="elasticsearch time-series indexed index-expiry",
         packages=["curator"],
         include_package_data=True,
@@ -138,12 +122,10 @@ try:
             "License :: OSI Approved :: Apache Software License",
             "Operating System :: OS Independent",
             "Programming Language :: Python",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
         ],
-        test_suite="test.run_tests.run_all",
-        tests_require=["mock", "nose", "coverage", "nosexcover"],
         options=build_dict,
         executables=[curator_exe, curator_cli_exe, repomgr_exe],
     )
@@ -160,7 +142,6 @@ except ImportError:
         download_url="https://github.com/uzhinskiy/curator-opensearch/releases/tag/"
         + get_version(),
         license="Apache License, Version 2.0",
-        install_requires=get_install_requires(),
         keywords="elasticsearch time-series indexed index-expiry",
         packages=["curator"],
         include_package_data=True,
@@ -177,10 +158,8 @@ except ImportError:
             "License :: OSI Approved :: Apache Software License",
             "Operating System :: OS Independent",
             "Programming Language :: Python",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
         ],
-        test_suite="test.run_tests.run_all",
-        tests_require=["mock", "nose", "coverage", "nosexcover"],
     )

@@ -1,4 +1,5 @@
 """Configuration utilty functions"""
+
 import logging
 from copy import deepcopy
 from voluptuous import Schema

@@ -1,4 +1,5 @@
 """Define valid schemas for client configuration validation"""
+
 from six import string_types
 from voluptuous import All, Any, Boolean, Coerce, Optional, Range
 

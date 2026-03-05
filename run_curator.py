@@ -22,7 +22,6 @@ Be sure to substitute your unicode variant for en_US.utf8
 
 from curator.cli import cli
 
-
 if __name__ == "__main__":
     try:
         # This is because click uses decorators, and pylint doesn't catch that

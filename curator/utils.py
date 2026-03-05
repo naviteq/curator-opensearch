@@ -1,4 +1,5 @@
 """Utilities"""
+
 import time
 import logging
 import os
@@ -1389,7 +1390,7 @@ def create_repo_body(
     access_key=None,
     secret_key=None,
     role_arn=None,
-    **kwargs
+    **kwargs,
 ):
     """
     Build the 'body' portion for use in creating a repository.
@@ -1513,14 +1514,10 @@ def create_repository(client, **kwargs):
                 "A repository with that name already exists.".format(repository)
             )
     except opensearchpy.TransportError as err:
-        raise exceptions.FailedExecution(
-            """
+        raise exceptions.FailedExecution("""
             Unable to create repository {0}.  Response Code: {1}.  Error: {2}.
             Check curator and elasticsearch logs for more information.
-            """.format(
-                repository, err.status_code, err.error
-            )
-        )
+            """.format(repository, err.status_code, err.error))
     LOGGER.debug("Repository {0} creation initiated...".format(repository))
     return True
 

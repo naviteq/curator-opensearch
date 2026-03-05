@@ -1,4 +1,5 @@
 """Index Rollover Singleton"""
+
 import click
 from curator.cli_singletons.object_class import cli_action
 from curator.cli_singletons.utils import get_width, json_to_dict, validate_filter_json

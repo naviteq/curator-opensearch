@@ -1,24 +1,26 @@
-FROM python:3.9.13-alpine3.16 as builder
+FROM python:3.12-slim AS builder
 
-# Add the community repo for access to patchelf binary package
-RUN echo 'https://dl-cdn.alpinelinux.org/alpine/v3.16/community/' >> /etc/apk/repositories
-RUN apk --no-cache upgrade && apk --no-cache add build-base tar musl-utils openssl-dev patchelf
-# patchelf-wrapper is necessary now for cx_Freeze, but not for Curator itself.
-RUN pip3 install setuptools cx_Freeze patchelf-wrapper
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
 
-COPY requirements.txt .
-RUN ln -s /lib/libc.musl-x86_64.so.1 ldd
-RUN ln -s /lib /lib64
-RUN pip3 install -r requirements.txt
+WORKDIR /app
 COPY . .
-RUN python3 setup.py build_exe
+ENV PYTHONUNBUFFERED=1
+# Install deps only (uv); then project as editable with no-build-isolation (avoids slow isolated build)
+RUN uv sync --no-dev --no-install-project -v
+RUN uv pip install setuptools wheel
+RUN uv pip install -e . --no-build-isolation --no-deps -v
+RUN uv pip install cx_Freeze patchelf-wrapper pip
+RUN uv run python3 setup.py build_exe
+# Normalize path so final stage works on both amd64 and arm64 (exe.linux-x86_64-3.12 or exe.linux-aarch64-3.12)
+RUN cp -a build/exe.linux-*-3.12 build/exe
 
-FROM alpine:3.16
-RUN apk --no-cache upgrade && apk --no-cache add openssl-dev expat
-COPY --from=builder build/exe.linux-x86_64-3.9 /curator/
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends libssl3 libexpat1 && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/build/exe /curator/
 RUN mkdir /.curator
 
-USER nobody:nobody
-ENV LD_LIBRARY_PATH /curator/lib:$LD_LIBRARY_PATH
+USER nobody:nogroup
+ENV LD_LIBRARY_PATH=/curator/lib
 ENTRYPOINT ["/curator/curator"]
-

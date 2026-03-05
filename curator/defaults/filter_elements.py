@@ -1,4 +1,5 @@
 """Filter element schema definitions"""
+
 from six import string_types
 from voluptuous import All, Any, Boolean, Coerce, Optional, Range, Required
 from curator.defaults import settings

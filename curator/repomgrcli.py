@@ -1,4 +1,5 @@
 """es_repo_mgr CLI"""
+
 import sys
 import re
 import logging

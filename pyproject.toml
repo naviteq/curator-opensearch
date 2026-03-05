@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "curator-opensearch"
+description = "Tending your Elasticsearch indices"
+readme = "README.rst"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.12"
+authors = [
+    { name = "Uzhinsky", email = "lspci@mail.ru" }
+]
+keywords = ["elasticsearch", "opensearch", "time-series", "indexed", "index-expiry"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+dynamic = ["version"]
+
+dependencies = [
+    "opensearch-py>=2.0,<4",
+    "urllib3>=2",
+    "requests>=2.26.0",
+    "boto3>=1.18.18",
+    "requests_aws4auth>=1.1.1",
+    "click>=8.0",
+    "pyyaml>=5.4.1",
+    "voluptuous>=0.12.1",
+    "certifi>=2021.5.30",
+    "six>=1.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=24.0",
+    "mock>=4.0",
+]
+
+[project.scripts]
+curator = "curator.cli:cli"
+curator_cli = "curator.curator_cli:main"
+es_repo_mgr = "curator.repomgrcli:repo_mgr_cli"
+
+[project.urls]
+Homepage = "https://github.com/uzhinskiy/curator-opensearch"
+Documentation = "https://github.com/uzhinskiy/curator-opensearch"
+Repository = "https://github.com/uzhinskiy/curator-opensearch"
+
+[tool.setuptools.dynamic]
+version = { attr = "curator._version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["curator*"]

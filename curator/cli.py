@@ -1,4 +1,5 @@
 """Main CLI for Curator"""
+
 import os
 import sys
 import logging

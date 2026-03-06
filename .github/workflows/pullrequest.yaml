@@ -85,9 +85,11 @@ jobs:
       - run: /curator/curator --version
 
   helm:
-    uses: naviteq/github-actions/.github/workflows/helm-release.yaml@main
-    needs: [test]
+    uses: naviteq/github-actions/.github/workflows/helm-release-github.yaml@main
+    needs: [docker]
     with:
-      CHART_LOCATION: helm
+      chart_path: helm
+      ghcr_repo: ${{ github.repository }}
+      bump_version_in_git: false
     secrets:
-      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}

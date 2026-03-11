@@ -72,6 +72,7 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
       USERNAME: ${{ github.actor }}
+      VERSION_TAG_V_PREFIX: true
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -92,4 +93,6 @@ jobs:
       ghcr_repo: ${{ github.repository }}
       bump_version_in_git: false
     secrets:
+      GITHUB_APP_ID: ${{ secrets.NAVITEQ_GITHUB_APP_ID }}
+      GITHUB_APP_KEY: ${{ secrets.NAVITEQ_GITHUB_APP_KEY }}
       token: ${{ secrets.GITHUB_TOKEN }}

@@ -72,6 +72,7 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE: ${{ github.repository }}
       USERNAME: ${{ github.actor }}
+      VERSION_TAG_V_PREFIX: true
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
